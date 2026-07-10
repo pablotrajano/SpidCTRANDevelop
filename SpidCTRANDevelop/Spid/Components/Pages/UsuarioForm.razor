@@ -314,6 +314,11 @@ else
 
         try
         {
+            if (!string.IsNullOrWhiteSpace(ponto) && ponto.StartsWith("p_", StringComparison.OrdinalIgnoreCase))
+            {
+                ponto = ponto.ToLower();
+            }
+
             // Validações
             if (string.IsNullOrWhiteSpace(nome) || string.IsNullOrWhiteSpace(ponto) || string.IsNullOrWhiteSpace(grupoPerfil))
             {

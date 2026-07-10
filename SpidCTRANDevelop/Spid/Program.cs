@@ -410,6 +410,12 @@ app.MapPost("/do-login", async (HttpContext ctx, AppDbContext db) =>
 {
     var form = await ctx.Request.ReadFormAsync();
     var ponto = form["ponto"].ToString().Trim();
+    
+    if (ponto.StartsWith("p_", StringComparison.OrdinalIgnoreCase))
+    {
+        ponto = ponto.ToLower();
+    }
+
     var senha = form["senha"].ToString();
 
     if (string.IsNullOrWhiteSpace(ponto) || string.IsNullOrWhiteSpace(senha))
@@ -420,9 +426,9 @@ app.MapPost("/do-login", async (HttpContext ctx, AppDbContext db) =>
 
     if (usuario is null)
     {
-        if (!ponto.StartsWith("P_", StringComparison.OrdinalIgnoreCase))
+        if (!ponto.StartsWith("p_", StringComparison.OrdinalIgnoreCase))
         {
-            var possivelPonto = "P_" + ponto;
+            var possivelPonto = "p_" + ponto;
             bool esqueceuP = ponto.Length > 4 || await db.Usuarios.AnyAsync(u => u.Ponto.ToLower() == possivelPonto.ToLower() && u.Ativo);
             
             if (esqueceuP)
@@ -431,6 +437,12 @@ app.MapPost("/do-login", async (HttpContext ctx, AppDbContext db) =>
             }
         }
         return Results.Redirect("/login?erro=usuario");
+    }
+
+    // No primeiro acesso, a senha inicial é igual ao Ponto. Normalizando para p minúsculo.
+    if (usuario.ContadorAcessos == 0 && senha.StartsWith("p_", StringComparison.OrdinalIgnoreCase))
+    {
+        senha = senha.ToLower();
     }
 
     var hasher = new Microsoft.AspNetCore.Identity.PasswordHasher<Usuario>();

@@ -32,7 +32,8 @@ else
                         <span class="badge bg-danger fs-6 d-flex align-items-center gap-1 px-3 py-2">
                             <Icon Name="lock" Size="14" /> Mês Encerrado
                         </span>
-                        <button class="btn btn-success btn-sm d-flex align-items-center gap-1" @onclick="AbrirModalLiberar" disabled="@processandoEncerramento">
+                        <button class="btn btn-success btn-sm d-flex align-items-center gap-1" @onclick="AbrirModalLiberar"
+                                disabled="@processandoEncerramento">
                             @if (processandoEncerramento)
                             {
                                 <span class="spinner-border spinner-border-sm"></span>
@@ -45,7 +46,8 @@ else
                         <span class="badge bg-success fs-6 d-flex align-items-center gap-1 px-3 py-2">
                             <Icon Name="lock-open" Size="14" /> Mês Liberado
                         </span>
-                        <button class="btn btn-danger btn-sm d-flex align-items-center gap-1" @onclick="AbrirModalEncerrar" disabled="@processandoEncerramento">
+                        <button class="btn btn-danger btn-sm d-flex align-items-center gap-1" @onclick="AbrirModalEncerrar"
+                                disabled="@processandoEncerramento">
                             @if (processandoEncerramento)
                             {
                                 <span class="spinner-border spinner-border-sm"></span>
@@ -60,490 +62,527 @@ else
                         <strong>Encerramento:</strong>
                         @if (encerramentoRegistro?.DataEncerramento is not null)
                         {
-                            <span>@encerramentoRegistro.EncerradoPor?.Nome — @encerramentoRegistro.DataEncerramento?.ToString("dd/MM/yyyy HH:mm")</span>
-                        }
+                            <span>@encerramentoRegistro.EncerradoPor?.Nome —
+                                @encerramentoRegistro.DataEncerramento?.ToString("dd/MM/yyyy HH:mm")</span>
+                            }
                         else
-                        {
-                            <span class="text-muted fst-italic">Sem registro de encerramento</span>
-                        }
-                    </span>
-                    <span>
-                        <strong>Liberação:</strong>
-                        @if (encerramentoRegistro?.DataLiberacao is not null)
-                        {
-                            <span>@encerramentoRegistro.LiberadoPor?.Nome — @encerramentoRegistro.DataLiberacao?.ToString("dd/MM/yyyy HH:mm")</span>
-                        }
+                            {
+                                <span class="text-muted fst-italic">Sem registro de encerramento</span>
+                            }
+                        </span>
+                        <span>
+                            <strong>Liberação:</strong>
+                            @if (encerramentoRegistro?.DataLiberacao is not null)
+                            {
+                                <span>@encerramentoRegistro.LiberadoPor?.Nome —
+                                    @encerramentoRegistro.DataLiberacao?.ToString("dd/MM/yyyy HH:mm")</span>
+                                }
                         else
-                        {
-                            <span class="text-muted fst-italic">Sem registro de liberação</span>
-                        }
-                    </span>
-                </div>
-                <div class="ms-auto">
-                    <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1" @onclick="AbrirModalReverter" disabled="@processandoEncerramento" title="Volta para o status de viagens e conferências do mês anterior">
-                        <Icon Name="rotate-left" Size="14" /> Reverter ação
-                    </button>
-                </div>
-            </div>
-        </div>
-    }
-
-    <!-- Filtro e Resumo -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body d-flex align-items-center gap-3 flex-wrap">
-            <!-- Filtros -->
-            <div class="flex-shrink-0">
-                <label class="form-label small mb-1">Mês</label>
-                <div class="d-flex align-items-center gap-1">
-                    <button class="filter-btn" @onclick="MesAnterior" disabled="@(mesSelecionado <= 1)">&#9664;</button>
-                    <select class="filter-select" @bind="mesSelecionado" @bind:after="Carregar">
-                        @for (int m = 1; m <= 12; m++)
-                        {
-                            var mes = m;
-                            <option value="@mes">@System.Globalization.CultureInfo.GetCultureInfo("pt-BR").DateTimeFormat.GetMonthName(mes)</option>
-                        }
-                    </select>
-                    <button class="filter-btn" @onclick="MesSeguinte" disabled="@(mesSelecionado >= 12)">&#9654;</button>
-                </div>
-            </div>
-            <div class="flex-shrink-0 d-flex flex-column">
-                <label class="form-label small mb-1">Ano</label>
-                <select class="filter-select" @bind="anoSelecionado" @bind:after="Carregar">
-                    @foreach (var a in anosDisponiveis)
-                    {
-                        <option value="@a">@a</option>
-                    }
-                </select>
-            </div>
-            <!-- Novo Campo Pesquisar -->
-            <div class="flex-shrink-0 d-flex flex-column">
-                <label class="form-label small mb-1">Pesquisar</label>
-                <input type="text" class="form-control form-control-sm" style="width: 200px;" placeholder="Buscar..." @bind="filtroPesquisa" @bind:after="OrdenarStatus" />
-            </div>
-            <!-- Cards de resumo na mesma linha -->
-            @if (centrosCustoStatus is not null && centrosCustoStatus.Count > 0)
-            {
-                <div class="flex-grow-1 d-flex gap-3">
-                    <div class="flex-fill">
-                        <div class="card text-center border-success h-100">
-                            <div class="card-body py-2">
-                                <div class="fs-3 fw-bold text-success">@centrosCustoStatus.Count(s => s.Confirmado && s.Pendentes == 0)</div>
-                                <small class="text-muted">Centros de Custo Confirmados</small>
-                            </div>
+                                {
+                                    <span class="text-muted fst-italic">Sem registro de liberação</span>
+                                }
+                            </span>
                         </div>
-                    </div>
-                    <div class="flex-fill">
-                        <div class="card text-center border-warning h-100">
-                            <div class="card-body py-2">
-                                <div class="fs-3 fw-bold text-warning">@centrosCustoStatus.Count(s => !s.Confirmado || s.Pendentes > 0)</div>
-                                <small class="text-muted">Centros de Custo Pendentes</small>
-                            </div>
+                        <div class="ms-auto">
+                            <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
+                                    @onclick="AbrirModalReverter" disabled="@processandoEncerramento"
+                                    title="Volta para o status de viagens e conferências do mês anterior">
+                                <Icon Name="rotate-left" Size="14" /> Reverter ação
+                            </button>
                         </div>
                     </div>
                 </div>
             }
-        </div>
-    </div>
 
-    @if (centrosCustoStatus is null)
-    {
-        <p class="text-muted">Carregando...</p>
-    }
-
-    <!-- Modais de Confirmação -->
-    @if (exibindoModalEncerrar)
-    {
-        <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5); z-index: 1050;">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content border-danger">
-                    <div class="modal-header bg-danger text-white">
-                        <h5 class="modal-title">Confirmar Encerramento</h5>
-                        <button type="button" class="btn-close btn-close-white" @onclick="FecharModalEncerrar"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>Tem certeza que deseja encerrar o mês de @System.Globalization.CultureInfo.GetCultureInfo("pt-BR").DateTimeFormat.GetMonthName(mesSelecionado)/@anoSelecionado?</p>
-                        <p class="small text-muted">Isso converterá todas as viagens pendentes para o status de 'Consideradas'.</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" @onclick="FecharModalEncerrar">Cancelar</button>
-                        <button class="btn btn-danger" @onclick="EncerrarMes">Confirmar</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-
-    @if (exibindoModalLiberar)
-    {
-        <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5); z-index: 1050;">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content border-success">
-                    <div class="modal-header bg-success text-white">
-                        <h5 class="modal-title">Confirmar Liberação</h5>
-                        <button type="button" class="btn-close btn-close-white" @onclick="FecharModalLiberar"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>Tem certeza que deseja liberar o mês de @System.Globalization.CultureInfo.GetCultureInfo("pt-BR").DateTimeFormat.GetMonthName(mesSelecionado)/@anoSelecionado?</p>
-                        <p class="small text-muted">Os gestores poderão novamente modificar os atestes das viagens.</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" @onclick="FecharModalLiberar">Cancelar</button>
-                        <button class="btn btn-success" @onclick="LiberarMes">Confirmar</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-
-    @if (exibindoModalReverter)
-    {
-        <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5); z-index: 1050;">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Confirmar Reversão</h5>
-                        <button type="button" class="btn-close" @onclick="FecharModalReverter"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>Tem certeza que deseja reverter a última ação realizada neste mês?</p>
-                        <p class="small text-danger">Isso desfará a liberação ou encerramento do mês e retornará o status das viagens para o estado anterior.</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" @onclick="FecharModalReverter">Cancelar</button>
-                        <button class="btn btn-primary" @onclick="ReverterAcaoEncerramento">Confirmar Reversão</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-
-    @if (centrosCustoStatusExibicao is not null && centrosCustoStatusExibicao.Count == 0)
-    {
-        <div class="alert alert-info">Nenhum centro de custo encontrado com os filtros selecionados.</div>
-    }
-    else if (centrosCustoStatusExibicao is not null && centrosCustoStatusExibicao.Count > 0)
-    {
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-dark">
-                    <tr>
-                        <th class="text-center">Centro de Custo</th>
-                        <th class="text-center">Viagens</th>
-                        <th class="text-center">Pendentes</th>
-                        <th class="text-center">OK</th>
-                        <th class="text-center">Contestadas</th>
-                        <th class="text-center">Gestor(a) Responsável</th>
-                        <th class="text-center" role="button" style="cursor:pointer;" @onclick="AlternarOrdemStatus">
-                            Status @(ordenarStatusAsc ? "▲" : "▼")
-                        </th>
-                        <th class="text-center">Confirmado por</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var s in centrosCustoStatusExibicao)
-                    {
-                        <tr>
-                            <td class="text-center"><strong>@s.CentroCustoNome</strong></td>
-                            <td class="text-center">
-                                @if (s.TotalViagens > 0)
+            <!-- Filtro e Resumo -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body d-flex align-items-center gap-3 flex-wrap">
+                    <!-- Filtros -->
+                    <div class="flex-shrink-0">
+                        <label class="form-label small mb-1">Mês</label>
+                        <div class="d-flex align-items-center gap-1">
+                            <button class="filter-btn" @onclick="MesAnterior" disabled="@(mesSelecionado <= 1)">&#9664;</button>
+                            <select class="filter-select" @bind="mesSelecionado" @bind:after="Carregar">
+                                @for (int m = 1; m <= 12; m++)
                                 {
-                                    <button class="btn btn-sm btn-outline-primary" @onclick="() => VerTodas(s)">
-                                        <Icon Name="list" Size="14" /> @s.TotalViagens
-                                    </button>
+                                    var mes = m;
+                                    <option value="@mes">
+                                        @System.Globalization.CultureInfo.GetCultureInfo("pt-BR").DateTimeFormat.GetMonthName(mes)
+                                    </option>
                                 }
-                                else
-                                {
-                                    <span class="text-muted">0</span>
-                                }
-                            </td>
-                            <td class="text-center">
-                                @if (s.Pendentes > 0)
-                                {
-                                    <button class="btn btn-sm btn-outline-warning text-dark" @onclick="() => VerPendentes(s)">
-                                        <Icon Name="clock" Size="14" /> @s.Pendentes
-                                    </button>
-                                }
-                                else
-                                {
-                                    <span class="text-muted">0</span>
-                                }
-                            </td>
-                            <td class="text-center">
-                                @if (s.Aprovadas > 0)
-                                {
-                                    <button class="btn btn-sm btn-outline-success" @onclick="() => VerOK(s)">
-                                        <Icon Name="circle-check" Size="14" /> @s.Aprovadas
-                                    </button>
-                                }
-                                else
-                                {
-                                    <span class="text-muted">0</span>
-                                }
-                            </td>
-                            <td class="text-center">
-                                @if (s.Contestadas > 0)
-                                {
-                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => VerContestadas(s)">
-                                        <Icon Name="circle-xmark" Size="14" /> @s.Contestadas
-                                    </button>
-                                }
-                                else
-                                {
-                                    <span class="text-muted">0</span>
-                                }
-                            </td>
-                            <td class="text-center">
-                                @if (!string.IsNullOrEmpty(s.GestorPrincipal))
-                                {
-                                    <strong>@s.GestorPrincipal</strong>
-                                }
-                                else
-                                {
-                                    <span class="text-muted fst-italic">Sem gestor</span>
-                                }
-                            </td>
-                            <td class="text-center">
-                                @if (s.Confirmado && s.Pendentes > 0)
-                                {
-                                    <span class="badge bg-danger">
-                                        <Icon Name="triangle-exclamation" Size="12" /> Novas Pendências
-                                    </span>
-                                }
-                                else if (s.Confirmado)
-                                {
-                                    <span class="badge bg-success">
-                                        <Icon Name="circle-check" Size="12" /> Confirmado
-                                    </span>
-                                }
-                                else if (mesEncerrado)
-                                {
-                                    <span class="badge bg-secondary">
-                                        <Icon Name="lock" Size="12" /> Encerrado
-                                    </span>
-                                }
-                                else if (s.Pendentes == 0 && s.TotalViagens > 0)
-                                {
-                                    <span class="badge bg-info">Aguardando confirmação</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-warning text-dark">
-                                        <Icon Name="clock" Size="12" /> Pendente
-                                    </span>
-                                }
-                            </td>
-                            <td class="text-center">
-                                @if (s.Confirmado)
-                                {
-                                    <small>@s.ConfirmadoPor — @s.DataConfirmacao?.ToString("dd/MM HH:mm")</small>
-                                }
-                                else
-                                {
-                                    <span class="text-muted">—</span>
-                                }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
-}
-
-@if (UserSession.UsuarioLogado?.Perfil == "Admin")
-{
-    <div class="card mt-5 border-danger shadow-sm">
-        <div class="card-header bg-danger text-white d-flex align-items-center gap-2">
-            <Icon Name="triangle-exclamation" Size="16" />
-            <strong>Zona de Perigo (Apenas Admins)</strong>
-        </div>
-        <div class="card-body">
-            <p class="text-danger mb-3">
-                <strong>Atenção:</strong> Apagar o registro de uma conferência mensal fará com que o sistema entenda que o setor ainda não consolidou as viagens deste mês.
-                A opção de "Finalizar Mês" voltará a ficar disponível para o Gestor. Esta ação é destrutiva e não pode ser desfeita.
-            </p>
-            
-            <div class="row align-items-end">
-                <div class="col-md-6 col-lg-4 mb-3 mb-md-0">
-                    <label class="form-label fw-bold">Centro de Custo</label>
-                    <select class="form-select" @bind="centroCustoExclusao">
-                        <option value="0">Todos os Centros de Custo com conferência</option>
-                        @if (centrosCustoStatus != null)
-                        {
-                            @foreach (var c in centrosCustoStatus.Where(x => x.Confirmado).OrderBy(x => x.CentroCustoNome))
-                            {
-                                <option value="@c.CentroCustoId">@c.CentroCustoNome</option>
-                            }
-                        }
-                    </select>
-                </div>
-                <div class="col-md-6 col-lg-8 text-md-end">
-                    <button class="btn btn-outline-danger" @onclick="AbrirModalExclusaoConferencia">
-                        <Icon Name="trash" Size="14" /> Apagar Conferência(s)
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Exclusão de Conferência -->
-    @if (exibindoModalExclusao)
-    {
-        <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5); z-index: 1050;">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content border-danger">
-                    <div class="modal-header bg-danger text-white">
-                        <h5 class="modal-title">Confirmar Exclusão</h5>
-                        <button type="button" class="btn-close btn-close-white" @onclick="FecharModalExclusao"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>Tem certeza que deseja apagar o registro de conferência?</p>
-                        @if (centroCustoExclusao == 0)
-                        {
-                            <p class="fw-bold text-danger">Você está prestes a apagar TODOS os registros de ateste do mês @mesSelecionado/@anoSelecionado.</p>
-                        }
-                        else
-                        {
-                            <p class="fw-bold text-danger">Você está prestes a apagar o registro do centro de custo: @(centrosCustoStatus?.FirstOrDefault(c => c.CentroCustoId == centroCustoExclusao)?.CentroCustoNome).</p>
-                        }
-                        <p class="small text-muted">Esta ação fará com que o botão "Finalizar Mês" fique disponível novamente para os gestores.</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" @onclick="FecharModalExclusao">Cancelar</button>
-                        <button class="btn btn-danger" @onclick="ExcluirConferenciaAsync" disabled="@carregandoExclusao">
-                            @if (carregandoExclusao)
-                            {
-                                <span class="spinner-border spinner-border-sm me-2"></span>
-                            }
-                            Confirmar Exclusão
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-}
-
-@* Modal de detalhes das viagens *@
-@if (detalheViagens is not null)
-{
-    <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        @(detalheStatus switch
-                        {
-                            "OK" => "Viagens Aprovadas",
-                            "Contestada" => "Viagens Contestadas",
-                            "Pendente" => "Viagens Pendentes",
-                            _ => "Todas as Viagens"
-                        })
-                        — @detalheCentroCustoNome
-                    </h5>
-                    <button type="button" class="btn-close" @onclick="FecharDetalhes"></button>
-                </div>
-                <div class="modal-body">
-                    @if (detalheStatus == "OK")
-                    {
-                        <div class="mb-3 d-flex align-items-center gap-2">
-                            <label class="form-label mb-0 fw-bold small">Exibir:</label>
-                            <select class="form-select form-select-sm w-auto" @bind="subFiltroOK">
-                                <option value="Ambos">Atestadas e Consideradas</option>
-                                <option value="OK">Apenas Atestadas</option>
-                                <option value="Considerado">Apenas Consideradas</option>
                             </select>
+                            <button class="filter-btn" @onclick="MesSeguinte" disabled="@(mesSelecionado >= 12)">&#9654;</button>
+                        </div>
+                    </div>
+                    <div class="flex-shrink-0 d-flex flex-column">
+                        <label class="form-label small mb-1">Ano</label>
+                        <select class="filter-select" @bind="anoSelecionado" @bind:after="Carregar">
+                            @foreach (var a in anosDisponiveis)
+                            {
+                                <option value="@a">@a</option>
+                            }
+                        </select>
+                    </div>
+                    <!-- Novo Campo Pesquisar -->
+                    <div class="flex-shrink-0 d-flex flex-column">
+                        <label class="form-label small mb-1">Pesquisar</label>
+                        <input type="text" class="form-control form-control-sm" style="width: 200px;" placeholder="Buscar..."
+                               @bind="filtroPesquisa" @bind:after="OrdenarStatus" />
+                    </div>
+                    <!-- Cards de resumo na mesma linha -->
+                    @if (centrosCustoStatus is not null && centrosCustoStatus.Count > 0)
+                    {
+                        <div class="flex-grow-1 d-flex gap-3">
+                            <div class="flex-fill">
+                                <div class="card text-center border-success h-100">
+                                    <div class="card-body py-2">
+                                        <div class="fs-3 fw-bold text-success">@centrosCustoStatus.Count(s => s.Confirmado &&
+                                                                                                                    s.Pendentes == 0)</div>
+                                            <small class="text-muted">Centros de Custo Confirmados</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex-fill">
+                                    <div class="card text-center border-warning h-100">
+                                        <div class="card-body py-2">
+                                            <div class="fs-3 fw-bold text-warning">@centrosCustoStatus.Count(s => !s.Confirmado ||
+                                                                                                                            s.Pendentes > 0)</div>
+                                                <small class="text-muted">Centros de Custo Pendentes</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    @if (centrosCustoStatus is null)
+                    {
+                        <p class="text-muted">Carregando...</p>
+                    }
+
+                    <!-- Modais de Confirmação -->
+                    @if (exibindoModalEncerrar)
+                    {
+                        <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5); z-index: 1050;">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content border-danger">
+                                    <div class="modal-header bg-danger text-white">
+                                        <h5 class="modal-title">Confirmar Encerramento</h5>
+                                        <button type="button" class="btn-close btn-close-white" @onclick="FecharModalEncerrar"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Tem certeza que deseja encerrar o mês de
+                                            @System.Globalization.CultureInfo.GetCultureInfo("pt-BR").DateTimeFormat.GetMonthName(mesSelecionado)/@anoSelecionado?
+                                        </p>
+                                        <p class="small text-muted">Isso converterá todas as viagens pendentes para o status de 'Consideradas'.
+                                        </p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button class="btn btn-secondary" @onclick="FecharModalEncerrar">Cancelar</button>
+                                        <button class="btn btn-danger" @onclick="EncerrarMes">Confirmar</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     }
 
-                    @if (detalheViagens.Count == 0)
+                    @if (exibindoModalLiberar)
                     {
-                        <p class="text-muted">Nenhuma viagem encontrada.</p>
-                    }
-                    else
-                    {
-                        <div class="table-responsive">
-                            <table class="table table-sm table-hover align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Data</th>
-                                        <th>Colaborador</th>
-                                        <th>Origem</th>
-                                        <th>Destino</th>
-                                        <th>Parceiro</th>
-                                        <th class="text-end">V. Cotado</th>
-                                        <th class="text-end">V. Final</th>
-                                        <th>Motivo da Viagem</th>
-                                        @if (detalheStatus == "Todas" || detalheStatus == "OK")
-                                        {
-                                            <th>Status</th>
-                                        }
-                                        @if (detalheStatus == "Contestada" || detalheStatus == "Todas")
-                                        {
-                                            <th>Motivo Contestação</th>
-                                        }
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var v in detalheViagens.Where(v => detalheStatus != "OK" || subFiltroOK == "Ambos" || v.StatusConferenciaGestor == subFiltroOK))
-                                    {
-                                        <tr>
-                                            <td>@v.DataViagem.ToString("dd/MM/yyyy")</td>
-                                            <td>@v.Colaborador.Nome</td>
-                                            <td>@v.Origem</td>
-                                            <td>@v.Destino</td>
-                                            <td>@v.Parceiro.Nome</td>
-                                            <td class="text-end">R$ @v.ValorCotado.ToString("N2")</td>
-                                            <td class="text-end">R$ @v.ValorFinal.ToString("N2")</td>
-                                            <td>@v.Motivo</td>
-                                            @if (detalheStatus == "Todas" || detalheStatus == "OK")
-                                            {
-                                                <td>
-                                                    @if (v.StatusConferenciaGestor == "OK")
-                                                    {
-                                                        <span class="badge bg-success">OK</span>
-                                                    }
-                                                    else if (v.StatusConferenciaGestor == "Considerado")
-                                                    {
-                                                        <span class="badge bg-success bg-opacity-75">Considerada</span>
-                                                    }
-                                                    else if (v.StatusConferenciaGestor == "Contestada")
-                                                    {
-                                                        <span class="badge bg-danger">Contestada</span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="badge bg-warning text-dark">Pendente</span>
-                                                    }
-                                                </td>
-                                            }
-                                            @if (detalheStatus == "Contestada" || detalheStatus == "Todas")
-                                            {
-                                                <td>
-                                                    @if (v.StatusConferenciaGestor == "Contestada")
-                                                    {
-                                                        <span class="text-danger">@v.MotivoContestacao</span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="text-muted">—</span>
-                                                    }
-                                                </td>
-                                            }
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
+                        <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5); z-index: 1050;">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content border-success">
+                                    <div class="modal-header bg-success text-white">
+                                        <h5 class="modal-title">Confirmar Liberação</h5>
+                                        <button type="button" class="btn-close btn-close-white" @onclick="FecharModalLiberar"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Tem certeza que deseja liberar o mês de
+                                            @System.Globalization.CultureInfo.GetCultureInfo("pt-BR").DateTimeFormat.GetMonthName(mesSelecionado)/@anoSelecionado?
+                                        </p>
+                                        <p class="small text-muted">Os gestores poderão novamente modificar os atestes das viagens.</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button class="btn btn-secondary" @onclick="FecharModalLiberar">Cancelar</button>
+                                        <button class="btn btn-success" @onclick="LiberarMes">Confirmar</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     }
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" @onclick="FecharDetalhes">Fechar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-}
+
+                    @if (exibindoModalReverter)
+                    {
+                        <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5); z-index: 1050;">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Confirmar Reversão</h5>
+                                        <button type="button" class="btn-close" @onclick="FecharModalReverter"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Tem certeza que deseja reverter a última ação realizada neste mês?</p>
+                                        <p class="small text-danger">Isso desfará a liberação ou encerramento do mês e retornará o status das
+                                            viagens para o estado anterior.</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button class="btn btn-secondary" @onclick="FecharModalReverter">Cancelar</button>
+                                            <button class="btn btn-primary" @onclick="ReverterAcaoEncerramento">Confirmar Reversão</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        @if (centrosCustoStatusExibicao is not null && centrosCustoStatusExibicao.Count == 0)
+                        {
+                            <div class="alert alert-info">Nenhuma viagem registrada para os centros de custo neste mês ou com os filtros
+                                selecionados.</div>
+                            }
+    else if (centrosCustoStatusExibicao is not null && centrosCustoStatusExibicao.Count > 0)
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th class="text-center">Centro de Custo</th>
+                                                <th class="text-center">Viagens</th>
+                                                <th class="text-center">Pendentes</th>
+                                                <th class="text-center">OK</th>
+                                                <th class="text-center">Consideradas</th>
+                                                <th class="text-center">Contestadas</th>
+                                                <th class="text-center">Gestor(a) Responsável</th>
+                                                <th class="text-center" role="button" style="cursor:pointer;" @onclick="AlternarOrdemStatus">
+                                                    Status @(ordenarStatusAsc ? "▲" : "▼")
+                                                </th>
+                                                <th class="text-center">Confirmado por</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var s in centrosCustoStatusExibicao)
+                                            {
+                                                <tr>
+                                                    <td class="text-center"><strong>@s.CentroCustoNome</strong></td>
+                                                    <td class="text-center">
+                                                        @if (s.TotalViagens > 0)
+                                                        {
+                                                            <button class="btn btn-sm btn-outline-primary" @onclick="() => VerTodas(s)">
+                                                                <Icon Name="list" Size="14" /> @s.TotalViagens
+                                                            </button>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">0</span>
+                                                        }
+                                                    </td>
+                                                    <td class="text-center">
+                                                        @if (s.Pendentes > 0)
+                                                        {
+                                                            <button class="btn btn-sm btn-outline-warning text-dark" @onclick="() => VerPendentes(s)">
+                                                                <Icon Name="clock" Size="14" /> @s.Pendentes
+                                                            </button>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">0</span>
+                                                        }
+                                                    </td>
+                                                    <td class="text-center">
+                                                        @if (s.Aprovadas > 0)
+                                                        {
+                                                            <button class="btn btn-sm btn-outline-success" @onclick="() => VerOK(s)">
+                                                                <Icon Name="circle-check" Size="14" /> @s.Aprovadas
+                                                            </button>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">0</span>
+                                                        }
+                                                    </td>
+                                                    <td class="text-center">
+                                                        @if (s.Consideradas > 0)
+                                                        {
+                                                            <button class="btn btn-sm"
+                                                                    style="color: #6f42c1; border-color: #6f42c1; background-color: transparent;"
+                                                                    @onclick="() => VerConsideradas(s)">
+                                                                <Icon Name="circle-check" Size="14" /> @s.Consideradas
+                                                            </button>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">0</span>
+                                                        }
+                                                    </td>
+                                                    <td class="text-center">
+                                                        @if (s.Contestadas > 0)
+                                                        {
+                                                            <button class="btn btn-sm btn-outline-danger" @onclick="() => VerContestadas(s)">
+                                                                <Icon Name="circle-xmark" Size="14" /> @s.Contestadas
+                                                            </button>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">0</span>
+                                                        }
+                                                    </td>
+                                                    <td class="text-center">
+                                                        @if (!string.IsNullOrEmpty(s.GestorPrincipal))
+                                                        {
+                                                            <strong>@s.GestorPrincipal</strong>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted fst-italic">Sem gestor</span>
+                                                        }
+                                                    </td>
+                                                    <td class="text-center">
+                                                        @if (s.Confirmado && s.Pendentes > 0)
+                                                        {
+                                                            <span class="badge bg-danger">
+                                                                <Icon Name="triangle-exclamation" Size="12" /> Novas Pendências
+                                                            </span>
+                                                        }
+                                                        else if (s.Confirmado)
+                                                        {
+                                                            <span class="badge bg-success">
+                                                                <Icon Name="circle-check" Size="12" /> Confirmado
+                                                            </span>
+                                                        }
+                                                        else if (mesEncerrado)
+                                                        {
+                                                            <span class="badge bg-secondary">
+                                                                <Icon Name="lock" Size="12" /> Encerrado
+                                                            </span>
+                                                        }
+                                                        else if (s.Pendentes == 0 && s.TotalViagens > 0)
+                                                        {
+                                                            <span class="badge bg-info">Aguardando confirmação</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge bg-warning text-dark">
+                                                                <Icon Name="clock" Size="12" /> Pendente
+                                                            </span>
+                                                        }
+                                                    </td>
+                                                    <td class="text-center">
+                                                        @if (s.Confirmado)
+                                                        {
+                                                            <small>@s.ConfirmadoPor — @s.DataConfirmacao?.ToString("dd/MM HH:mm")</small>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">—</span>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        }
+
+                        @if (UserSession.UsuarioLogado?.Perfil == "Admin")
+                        {
+                            <div class="card mt-5 border-danger shadow-sm">
+                                <div class="card-header bg-danger text-white d-flex align-items-center gap-2">
+                                    <Icon Name="triangle-exclamation" Size="16" />
+                                    <strong>Zona de Perigo (Apenas Admins)</strong>
+                                </div>
+                                <div class="card-body">
+                                    <p class="text-danger mb-3">
+                                        <strong>Atenção:</strong> Apagar o registro de uma conferência mensal fará com que o sistema entenda que o
+                                        setor ainda não consolidou as viagens deste mês.
+                                        A opção de "Finalizar Mês" voltará a ficar disponível para o Gestor. Esta ação é destrutiva e não pode ser
+                                        desfeita.
+                                    </p>
+
+                                    <div class="row align-items-end">
+                                        <div class="col-md-6 col-lg-4 mb-3 mb-md-0">
+                                            <label class="form-label fw-bold">Centro de Custo</label>
+                                            <select class="form-select" @bind="centroCustoExclusao">
+                                                <option value="0">Todos os Centros de Custo com conferência</option>
+                                                @if (centrosCustoStatus != null)
+                                                {
+                                                    @foreach (var c in centrosCustoStatus.Where(x => x.Confirmado).OrderBy(x => x.CentroCustoNome))
+                                                    {
+                                                        <option value="@c.CentroCustoId">@c.CentroCustoNome</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 col-lg-8 text-md-end">
+                                            <button class="btn btn-outline-danger" @onclick="AbrirModalExclusaoConferencia">
+                                                <Icon Name="trash" Size="14" /> Apagar Conferência(s)
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Modal de Exclusão de Conferência -->
+                            @if (exibindoModalExclusao)
+                            {
+                                <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5); z-index: 1050;">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-danger">
+                                            <div class="modal-header bg-danger text-white">
+                                                <h5 class="modal-title">Confirmar Exclusão</h5>
+                                                <button type="button" class="btn-close btn-close-white" @onclick="FecharModalExclusao"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Tem certeza que deseja apagar o registro de conferência?</p>
+                                                @if (centroCustoExclusao == 0)
+                                                {
+                                                    <p class="fw-bold text-danger">Você está prestes a apagar TODOS os registros de ateste do mês
+                                                        @mesSelecionado/@anoSelecionado.</p>
+                                                    }
+                        else
+                                                    {
+                                                        <p class="fw-bold text-danger">Você está prestes a apagar o registro do centro de custo:
+                                                            @(centrosCustoStatus?.FirstOrDefault(c => c.CentroCustoId == centroCustoExclusao)?.CentroCustoNome).
+                                                        </p>
+                                                    }
+                                                    <p class="small text-muted">Esta ação fará com que o botão "Finalizar Mês" fique disponível novamente
+                                                        para os gestores.</p>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button class="btn btn-secondary" @onclick="FecharModalExclusao">Cancelar</button>
+                                                        <button class="btn btn-danger" @onclick="ExcluirConferenciaAsync" disabled="@carregandoExclusao">
+                                                            @if (carregandoExclusao)
+                                                            {
+                                                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                                            }
+                                                            Confirmar Exclusão
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+
+                                @* Modal de detalhes das viagens *@
+                                @if (detalheViagens is not null)
+                                {
+                                    <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+                                        <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">
+                                                        @(detalheStatus switch
+                                                        {
+                                                            "OK" => "Viagens Aprovadas",
+                                                            "Contestada" => "Viagens Contestadas",
+                                                            "Pendente" => "Viagens Pendentes",
+                                                            _ => "Todas as Viagens"
+                                                        })
+                                                        — @detalheCentroCustoNome
+                                                    </h5>
+                                                    <button type="button" class="btn-close" @onclick="FecharDetalhes"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    @if (detalheStatus == "OK")
+                                                    {
+                                                        <div class="mb-3 d-flex align-items-center gap-2">
+                                                            <label class="form-label mb-0 fw-bold small">Exibir:</label>
+                                                            <select class="form-select form-select-sm w-auto" @bind="subFiltroOK">
+                                                                <option value="Ambos">Atestadas e Consideradas</option>
+                                                                <option value="OK">Apenas Atestadas</option>
+                                                                <option value="Considerado">Apenas Consideradas</option>
+                                                            </select>
+                                                        </div>
+                                                    }
+
+                                                    @if (detalheViagens.Count == 0)
+                                                    {
+                                                        <p class="text-muted">Nenhuma viagem encontrada.</p>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="table-responsive">
+                                                            <table class="table table-sm table-hover align-middle">
+                                                                <thead class="table-light">
+                                                                    <tr>
+                                                                        <th>Data</th>
+                                                                        <th>Colaborador</th>
+                                                                        <th>Origem</th>
+                                                                        <th>Destino</th>
+                                                                        <th>Parceiro</th>
+                                                                        <th class="text-end">V. Cotado</th>
+                                                                        <th class="text-end">V. Final</th>
+                                                                        <th>Motivo da Viagem</th>
+                                                                        @if (detalheStatus == "Todas" || detalheStatus == "OK")
+                                                                        {
+                                                                            <th>Status</th>
+                                                                        }
+                                                                        @if (detalheStatus == "Contestada" || detalheStatus == "Todas")
+                                                                        {
+                                                                            <th>Motivo Contestação</th>
+                                                                        }
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    @foreach (var v in detalheViagens.Where(v => detalheStatus != "OK" || subFiltroOK == "Ambos" || v.StatusConferenciaGestor == subFiltroOK))
+                                                                    {
+                                                                        <tr>
+                                                                            <td>@v.DataViagem.ToString("dd/MM/yyyy")</td>
+                                                                            <td>@v.Colaborador.Nome</td>
+                                                                            <td>@v.Origem</td>
+                                                                            <td>@v.Destino</td>
+                                                                            <td>@v.Parceiro.Nome</td>
+                                                                            <td class="text-end">R$ @v.ValorCotado.ToString("N2")</td>
+                                                                            <td class="text-end">R$ @v.ValorFinal.ToString("N2")</td>
+                                                                            <td>@v.Motivo</td>
+                                                                            @if (detalheStatus == "Todas" || detalheStatus == "OK")
+                                                                            {
+                                                                                <td>
+                                                                                    @if (v.StatusConferenciaGestor == "OK")
+                                                                                    {
+                                                                                        <span class="badge bg-success">OK</span>
+                                                                                    }
+                                                                                    else if (v.StatusConferenciaGestor == "Considerado")
+                                                                                    {
+                                                                                        <span class="badge text-white" style="background-color: #6f42c1;">Considerada</span>
+                                                                                    }
+                                                                                    else if (v.StatusConferenciaGestor == "Contestada")
+                                                                                    {
+                                                                                        <span class="badge bg-danger">Contestada</span>
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                        <span class="badge bg-warning text-dark">Pendente</span>
+                                                                                    }
+                                                                                </td>
+                                                                            }
+                                                                            @if (detalheStatus == "Contestada" || detalheStatus == "Todas")
+                                                                            {
+                                                                                <td>
+                                                                                    @if (v.StatusConferenciaGestor == "Contestada")
+                                                                                    {
+                                                                                        <span class="text-danger">@v.MotivoContestacao</span>
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                        <span class="text-muted">—</span>
+                                                                                    }
+                                                                                </td>
+                                                                            }
+                                                                        </tr>
+                                                                    }
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    }
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button class="btn btn-secondary" @onclick="FecharDetalhes">Fechar</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
 
 @code {
     private bool isAdmin;
@@ -633,7 +672,8 @@ else
                 CentroCustoNome = g.Key.Nome,
                 Total = g.Count(),
                 Pendentes = g.Count(v => v.StatusConferenciaGestor == "Pendente"),
-                Aprovadas = g.Count(v => v.StatusConferenciaGestor == "OK" || v.StatusConferenciaGestor == "Considerado"),
+                Aprovadas = g.Count(v => v.StatusConferenciaGestor == "OK"),
+                Consideradas = g.Count(v => v.StatusConferenciaGestor == "Considerado"),
                 Contestadas = g.Count(v => v.StatusConferenciaGestor == "Contestada")
             })
             .ToDictionaryAsync(g => g.CentroCustoId);
@@ -651,7 +691,7 @@ else
         // 2. Gestor Titular
         // 3. Gestor Substituto
         var gestoresAptos = await Db.Usuarios
-            .Where(u => u.CentroCustoId.HasValue && u.Ativo && !u.IsTeste && 
+            .Where(u => u.CentroCustoId.HasValue && u.Ativo && !u.IsTeste &&
                         (u.Perfil == "Gestor Central Ateste" || u.Perfil == "Gestor Titular" || u.Perfil == "Gestor Substituto"))
             .Select(u => new { u.CentroCustoId, u.Nome, u.Perfil })
             .ToListAsync();
@@ -659,8 +699,8 @@ else
         var gestorPorCentroCusto = gestoresAptos
             .GroupBy(u => u.CentroCustoId!.Value)
             .ToDictionary(
-                g => g.Key, 
-                g => g.OrderBy(u => u.Perfil == "Gestor Central Ateste" ? 1 : 
+                g => g.Key,
+                g => g.OrderBy(u => u.Perfil == "Gestor Central Ateste" ? 1 :
                                     u.Perfil == "Gestor Titular" ? 2 : 3)
                       .First().Nome
             );
@@ -676,6 +716,7 @@ else
                 TotalViagens = v?.Total ?? 0,
                 Pendentes = v?.Pendentes ?? 0,
                 Aprovadas = v?.Aprovadas ?? 0,
+                Consideradas = v?.Consideradas ?? 0,
                 Contestadas = v?.Contestadas ?? 0,
                 GestorPrincipal = gestorPorCentroCusto.GetValueOrDefault(c.Id) ?? "",
                 Confirmado = conf is not null,
@@ -806,7 +847,7 @@ else
                 registro.Encerrado = true;
                 registro.LiberadoPorId = null;
                 registro.DataLiberacao = null;
-                
+
                 var viagensPendentes = await Db.Viagens
                     .Where(v => v.DataViagem >= mesInicio && v.DataViagem < mesFim && v.StatusConferenciaGestor == "Pendente")
                     .ToListAsync();
@@ -870,16 +911,18 @@ else
             return "Pendente";
         }
 
-        var query = centrosCustoStatus.AsEnumerable();
+        var query = centrosCustoStatus.Where(s => s.TotalViagens > 0).AsEnumerable();
 
         if (!string.IsNullOrWhiteSpace(filtroPesquisa))
         {
-            query = query.Where(s => 
+            query = query.Where(s =>
                 s.CentroCustoNome.Contains(filtroPesquisa, StringComparison.OrdinalIgnoreCase) ||
                 (s.GestorPrincipal != null && s.GestorPrincipal.Contains(filtroPesquisa, StringComparison.OrdinalIgnoreCase)) ||
                 (s.ConfirmadoPor != null && s.ConfirmadoPor.Contains(filtroPesquisa, StringComparison.OrdinalIgnoreCase)) ||
-                (s.DataConfirmacao.HasValue && s.DataConfirmacao.Value.ToString("dd/MM/yyyy HH:mm").Contains(filtroPesquisa, StringComparison.OrdinalIgnoreCase)) ||
-                (s.DataConfirmacao.HasValue && s.DataConfirmacao.Value.ToString("dd/MM HH:mm").Contains(filtroPesquisa, StringComparison.OrdinalIgnoreCase)) ||
+                (s.DataConfirmacao.HasValue && s.DataConfirmacao.Value.ToString("dd/MM/yyyy HH:mm").Contains(filtroPesquisa,
+StringComparison.OrdinalIgnoreCase)) ||
+                (s.DataConfirmacao.HasValue && s.DataConfirmacao.Value.ToString("dd/MM HH:mm").Contains(filtroPesquisa,
+StringComparison.OrdinalIgnoreCase)) ||
                 ObterStatusTexto(s).Contains(filtroPesquisa, StringComparison.OrdinalIgnoreCase)
             );
         }
@@ -898,6 +941,7 @@ else
 
 
     private Task VerOK(CentroCustoStatusDto centroCusto) => VerDetalhes(centroCusto, "OK");
+    private Task VerConsideradas(CentroCustoStatusDto centroCusto) => VerDetalhes(centroCusto, "Considerado");
     private Task VerContestadas(CentroCustoStatusDto centroCusto) => VerDetalhes(centroCusto, "Contestada");
     private Task VerPendentes(CentroCustoStatusDto centroCusto) => VerDetalhes(centroCusto, "Pendente");
     private Task VerTodas(CentroCustoStatusDto centroCusto) => VerDetalhes(centroCusto, "Todas");
@@ -918,14 +962,7 @@ else
 
         if (status != "Todas")
         {
-            if (status == "OK")
-            {
-                query = query.Where(v => v.StatusConferenciaGestor == "OK" || v.StatusConferenciaGestor == "Considerado");
-            }
-            else
-            {
-                query = query.Where(v => v.StatusConferenciaGestor == status);
-            }
+            query = query.Where(v => v.StatusConferenciaGestor == status);
         }
 
         detalheViagens = await query
@@ -945,6 +982,7 @@ else
         public int TotalViagens { get; set; }
         public int Pendentes { get; set; }
         public int Aprovadas { get; set; }
+        public int Consideradas { get; set; }
         public int Contestadas { get; set; }
         public string GestorPrincipal { get; set; } = "";
         public bool Confirmado { get; set; }
@@ -983,14 +1021,14 @@ else
             }
 
             var conferenciasParaApagar = await query.ToListAsync();
-            
+
             if (conferenciasParaApagar.Any())
             {
                 Db.ConferenciasMensais.RemoveRange(conferenciasParaApagar);
                 await Db.SaveChangesAsync();
                 await Carregar();
             }
-            
+
             FecharModalExclusao();
         }
         finally

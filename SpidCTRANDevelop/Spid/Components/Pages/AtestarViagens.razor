@@ -8,6 +8,7 @@
 @inject AppDbContext Db
 @inject UserSession UserSession
 @inject NavigationManager Nav
+@inject IJSRuntime JS
 
 <style>
     .btn-badge-contestada {
@@ -28,14 +29,24 @@
 <PageTitle>Atestar Viagens — SPID</PageTitle>
 
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-    <h3 class="mb-0">
+    <h3 class="mb-0 text-nowrap">
         <Icon Name="magnifying-glass-chart" Size="24" Class="page-header-icon" /> Atestar Viagens
     </h3>
+
+    @if (!isAdmin && !mesOcultoParaGestor)
+    {
+        <div class="alert alert-warning mb-0 py-2 ms-auto text-center" style="min-width: 550px;">
+            <span class="small">
+                <strong>Atenção!</strong> Após encerramento do prazo, as viagens pendentes serão Atestadas!
+            </span>
+        </div>
+    }
 
     @if (isAdmin && centrosCusto.Count > 0)
     {
         <div class="d-flex align-items-center gap-2 flex-wrap">
-            <select class="setor-select" @bind="centroCustoSelecionadoId" @bind:after="CarregarViagens" disabled="@(!isAdmin)">
+            <select class="setor-select" @bind="centroCustoSelecionadoId" @bind:after="CarregarViagens"
+                    disabled="@(!isAdmin)">
                 <option value="">Selecione o Centro de Custo</option>
                 @foreach (var c in centrosCusto)
                 {
@@ -74,7 +85,8 @@ else
                                 </option>
                             }
                         </select>
-                        <button class="filter-btn" @onclick="MesSeguinte" disabled="@(mesSelecionado >= 12)">&#9654;</button>
+                        <button class="filter-btn" @onclick="MesSeguinte"
+                                disabled="@(mesSelecionado >= 12)">&#9654;</button>
                     </div>
                 </div>
                 <div>
@@ -103,376 +115,512 @@ else
                 </div>
             </div>
 
-            <!-- Resumo -->
-            <div class="flex-grow-1 d-flex gap-3">
-                <div class="flex-fill">
-                    <div class="card text-center border-warning h-100">
-                        <div class="card-body py-2">
-                            <div class="fs-3 fw-bold text-warning">@viagens.Count(v => v.StatusConferenciaGestor == "Pendente")</div>
-                            <small class="text-muted">Pendentes</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex-fill">
-                    <div class="card text-center border-success h-100">
-                        <div class="card-body py-2">
-                            <div class="fs-3 fw-bold text-success">@viagens.Count(v => v.StatusConferenciaGestor == "OK" || v.StatusConferenciaGestor == "Considerado")</div>
-                            <small class="text-muted">Aprovadas</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex-fill">
-                    <div class="card text-center border-danger h-100">
-                        <div class="card-body py-2">
-                            <div class="fs-3 fw-bold text-danger">@viagens.Count(v => v.StatusConferenciaGestor == "Contestada")</div>
-                            <small class="text-muted">Contestadas</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    @if (mesEncerradoParaGestor)
-    {
-        <div class="alert alert-danger d-flex align-items-center gap-2 mb-4">
-            <Icon Name="lock" Size="16" />
-            <span>
-                <strong>Mês encerrado!</strong> O mês de
-                @System.Globalization.CultureInfo.GetCultureInfo("pt-BR").DateTimeFormat.GetMonthName(mesSelecionado)/@anoSelecionado
-                foi encerrado.
-                Não é possível atestar ou contestar viagens deste período.
-            </span>
-        </div>
-    }
-    else if (!isAdmin)
-    {
-        <div class="alert alert-warning d-flex align-items-center gap-2 mb-4">
-            <Icon Name="circle-exclamation" Size="16" />
-            <span>
-                <strong>Atenção!</strong> Após o encerramento do prazo de confirmação, viagens que não forem confirmadas serão consideradas Atestadas!
-            </span>
-        </div>
-    }
-
-
-
-    @if (viagensFiltradas.Count == 0)
-    {
-        <div class="alert alert-info">Nenhuma viagem encontrada com os filtros selecionados.</div>
-    }
-    <!-- Paginação: seletor de itens por página -->
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <div class="d-flex align-items-center gap-2">
-            <small class="text-muted">Exibir</small>
-            <select class="form-select form-select-sm filter-select" style="width: auto;" @bind="itensPorPagina"
-                    @bind:after="OnPageSizeChanged">
-                <option value="10">10</option>
-                <option value="20">20</option>
-                <option value="30">30</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-            </select>
-            <small class="text-muted">viagens por página</small>
-            <span class="badge bg-secondary">
-                @viagensFiltradas.Count viagem(ns)
-            </span>
-        </div>
-        <small class="text-muted">
-            Página @paginaAtual de @totalPaginas
-        </small>
-    </div>
-
-    <div class="table-responsive">
-        <table class="table table-hover align-middle">
-            <thead class="table-dark">
-                <tr>
-                    <th class="text-center border-end border-dark" style="width: 50px;">#</th>
-                    <th class="text-center" role="button" @onclick="AlternarOrdemData" style="cursor:pointer;">
-                        Início da Viagem @(ordenarDataAsc ? "▲" : "▼")
-                    </th>
-                    <th class="text-center">Fim da Viagem</th>
-                    <th class="text-center">Colaborador</th>
-                    <th class="text-center">Origem</th>
-                    <th class="text-center">Destino</th>
-                    <th class="text-center">Motivo da Viagem</th>
-                    <th class="text-center">Parceiro</th>
-                    <th class="text-center">Valor Final</th>
-                    <th class="text-center">Status</th>
-                    <th class="text-center">Ateste da viagem</th>
-                </tr>
-            </thead>
-            <tbody>
-                @{ int rowIndex = (paginaAtual - 1) * itensPorPagina + 1; }
-                @foreach (var v in viagensPaginadas)
+            @if (mesOcultoParaGestor)
+            {
+                @if (mesEncerradoParaGestor)
                 {
-                    <tr>
-                        <td class="text-center text-muted fw-bold border-end border-dark">@(rowIndex++)</td>
-                        <td class="text-center">
-                            @v.DataViagem.ToString("dd/MM/yyyy")<br />
-                            @v.HoraInicio.ToString("HH:mm")
-                        </td>
-                        <td class="text-center">
-                            @CalcDataFim(v).ToString("dd/MM/yyyy")<br />
-                            @v.HoraFim.ToString("HH:mm")
-                        </td>
-                        <td class="text-center">@v.Colaborador.Nome</td>
-                        <td class="text-center">@v.Origem</td>
-                        <td class="text-center">@v.Destino</td>
-                        <td class="text-center">@v.Motivo</td>
-                        <td class="text-center">@v.Parceiro.Nome</td>
-                        <td class="text-center">R$ @v.ValorFinal.ToString("N2")</td>
-                        <td class="text-center">
-                            @switch (v.StatusConferenciaGestor)
-                            {
-                                case "Pendente":
-                                    <span class="badge bg-warning text-dark">
-                                        <Icon Name="clock" Size="12" /> Pendente
-                                    </span>
-                                    break;
-                                case "OK":
-                                    <span class="badge bg-success">
-                                        <Icon Name="circle-check" Size="12" /> Atestada
-                                    </span>
-                                    break;
-                                case "Considerado":
-                                    <span class="badge bg-success bg-opacity-75">
-                                        <Icon Name="circle-check" Size="12" /> Considerada
-                                    </span>
-                                    break;
-                                case "Contestada":
-                                    <button type="button"
-                                            class="badge bg-danger border-0 d-inline-flex align-items-center gap-1 btn-badge-contestada"
-                                            style="cursor: pointer; user-select: none;" @onclick="() => MostrarMotivoContestacao(v)"
-                                            title="Clique para ver o motivo da contestação">
-                                        <Icon Name="circle-xmark" Size="12" /> Contestada
-                                    </button>
-                                    break;
-                            }
-                        </td>
-                        <td class="text-center">
-                            @if (isSomenteLeitura)
-                            {
-                                <span class="text-muted small">Sem permissão</span>
-                            }
-                            else
-                            {
-                                @if (v.StatusConferenciaGestor == "Pendente")
-                                {
-                                    <button class="btn btn-sm btn-success me-1" @onclick="() => Aprovar(v)">
-                                        <Icon Name="circle-check" Size="14" /> Atestar
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" @onclick="() => AbrirContestacao(v)">
-                                        <Icon Name="circle-xmark" Size="14" /> Contestar
-                                    </button>
-                                }
-                                else
-                                {
-                                    bool viagemBloqueada = mesFoiLiberado && v.StatusConferenciaGestor != "Considerado" && v.DataConferencia < dataLiberacao;
-                                    if (viagemBloqueada)
-                                    {
-                                        <span class="text-muted small">Sem permissão</span>
-                                    }
-                                    else
-                                    {
-                                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => SolicitarReversao(v)">
-                                            <Icon Name="rotate-left" Size="14" /> Reverter
-                                        </button>
-                                    }
-                                }
-                            }
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Navegação de páginas -->
-    @if (totalPaginas > 1)
-    {
-        <nav>
-            <ul class="pagination pagination-sm justify-content-center">
-                <li class="page-item @(paginaAtual == 1 ? "disabled" : "")">
-                    <button class="page-link" @onclick="() => IrParaPagina(paginaAtual - 1)">&laquo;</button>
-                </li>
-                @for (int i = 1; i <= totalPaginas; i++)
-                {
-                    var pg = i;
-                    <li class="page-item @(pg == paginaAtual ? "active" : "")">
-                        <button class="page-link" @onclick="() => IrParaPagina(pg)">@pg</button>
-                    </li>
-                }
-                <li class="page-item @(paginaAtual == totalPaginas ? "disabled" : "")">
-                    <button class="page-link" @onclick="() => IrParaPagina(paginaAtual + 1)">&raquo;</button>
-                </li>
-            </ul>
-        </nav>
-    }
-
-    <!-- Confirmação Mensal -->
-    @if (viagens is not null && viagens.Count > 0)
-    {
-        <div class="card shadow-sm mt-4">
-            <div class="card-body">
-                @if (jaConfirmou && viagens.Any(v => v.StatusConferenciaGestor == "Pendente"))
-                {
-                    <div class="alert alert-danger mb-0">
-                        <Icon Name="triangle-exclamation" Size="16" Class="text-danger me-1" />
-                        <strong>Novas Pendências!</strong> Novas viagens foram importadas para este mês após a confirmação realizada
-                        por
-                        <strong>@confirmadoPorNome</strong> em @confirmadoEm?.ToString("dd/MM/yyyy HH:mm").
-                        Analise as novas viagens pendentes na tabela acima para poder reconfirmar o mês.
+                    <div class="alert alert-danger d-flex align-items-center gap-2 mb-4 mt-4">
+                        <Icon Name="lock" Size="16" />
+                        <span>
+                            <strong>Mês encerrado!</strong> O mês de
+                            @System.Globalization.CultureInfo.GetCultureInfo("pt-BR").DateTimeFormat.GetMonthName(mesSelecionado)/@anoSelecionado
+                            foi encerrado.
+                            Não é possível atestar, contestar ou visualizar viagens deste período.
+                        </span>
                     </div>
-                }
-                else if (jaConfirmou && confirmadoPorNome is not null)
-                {
-                    <div class="alert alert-success mb-0">
-                        <Icon Name="circle-check" Size="16" Class="text-success me-1" /> Verificação de
-                        <strong>@($"{mesSelecionado:D2}/{anoSelecionado}")</strong> confirmada por
-                        <strong>@confirmadoPorNome</strong> em @confirmadoEm?.ToString("dd/MM/yyyy HH:mm")
-                    </div>
-                }
-                else if (jaConfirmou)
-                {
-                    <div class="alert alert-success mb-0">
-                        <Icon Name="circle-check" Size="16" Class="text-success me-1" /> Verificação do mês
-                        <strong>@($"{mesSelecionado:D2}/{anoSelecionado}")</strong> já foi confirmada.
-                    </div>
-                }
-                else if (todasVerificadas)
-                {
-                    <div class="alert alert-info mb-2">
-                        Todas as viagens foram analisadas! Confirme a verificação do mês.
-                    </div>
-                    <button class="btn btn-success" @onclick="ConfirmarMes" disabled="@(confirmando || isSomenteLeitura)">
-                        @if (confirmando)
-                        {
-                            <span class="spinner-border spinner-border-sm me-2"></span>
-                        }
-                        <Icon Name="circle-check" Size="14" /> Confirmar Verificação de @($"{mesSelecionado:D2}/{anoSelecionado}")
-                    </button>
                 }
                 else
                 {
-                    <div class="alert alert-warning mb-0">
-                        <Icon Name="clock" Size="16" Class="text-warning me-1" /> Ainda há <strong>@viagens.Count(v =>
-                                        v.StatusConferenciaGestor == "Pendente")</strong> viagem(ns)
-                        pendente(s). Analise todas para poder confirmar o mês.
+                    <div class="alert alert-warning d-flex align-items-center gap-2 mb-4 mt-4">
+                        <Icon Name="eye-slash" Size="16" />
+                        <span>
+                            <strong>Visualização indisponível!</strong> O mês de
+                            @System.Globalization.CultureInfo.GetCultureInfo("pt-BR").DateTimeFormat.GetMonthName(mesSelecionado)/@anoSelecionado
+                            não está disponível para visualização.
+                        </span>
                     </div>
                 }
-            </div>
-        </div>
-    }
-}
-
-@* Modal de contestação *@
-@if (viagemContestar is not null)
-{
-    <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Contestar Viagem</h5>
-                    <button type="button" class="btn-close" @onclick="FecharContestacao"></button>
-                </div>
-                <div class="modal-body">
-                    <p>
-                        Viagem de <strong>@viagemContestar.Colaborador.Nome</strong>
-                        em @viagemContestar.DataViagem.ToString("dd/MM/yyyy")
-                        — R$ @viagemContestar.ValorFinal.ToString("N2")
-                    </p>
-                    <div class="mb-3">
-                        <label class="form-label">Motivo da contestação</label>
-                        <textarea class="form-control" rows="3" @bind="motivoContestacao"
-                                  placeholder="Descreva o motivo..."></textarea>
+            }
+            @if (!mesOcultoParaGestor)
+            {
+                <!-- Resumo -->
+                <div class="flex-grow-1 d-flex gap-3">
+                    <div class="flex-fill">
+                        <div class="card text-center border-warning h-100">
+                            <div class="card-body py-2">
+                                <div class="fs-3 fw-bold text-warning">@viagens.Count(v => v.StatusConferenciaGestor ==
+                                                                                           "Pendente")</div>
+                                    <small class="text-muted">Pendentes</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-fill">
+                            <div class="card text-center border-success h-100">
+                                <div class="card-body py-2">
+                                    <div class="fs-3 fw-bold text-success">@viagens.Count(v => v.StatusConferenciaGestor == "OK" ||
+                                                                                                        v.StatusConferenciaGestor == "Considerado")</div>
+                                        <small class="text-muted">Aprovadas</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex-fill">
+                                <div class="card text-center border-danger h-100">
+                                    <div class="card-body py-2">
+                                        <div class="fs-3 fw-bold text-danger">@viagens.Count(v => v.StatusConferenciaGestor ==
+                                                                                             "Contestada")</div>
+                                            <small class="text-muted">Contestadas</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" @onclick="FecharContestacao">Cancelar</button>
-                    <button class="btn btn-danger" @onclick="ConfirmarContestacao"
-                            disabled="@string.IsNullOrWhiteSpace(motivoContestacao)">
-                        Confirmar Contestação
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-}
 
-@* Modal para exibir o motivo de contestação *@
-@if (viagemMotivoMostrar is not null)
-{
-    <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title d-flex align-items-center gap-2">
-                        <Icon Name="circle-xmark" Size="18" /> Motivo da Contestação
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" @onclick="FecharMotivoContestacao"></button>
-                </div>
-                <div class="modal-body text-start">
-                    <p class="mb-3 small text-muted">
-                        Viagem de <strong>@viagemMotivoMostrar.Colaborador.Nome</strong>
-                        em @viagemMotivoMostrar.DataViagem.ToString("dd/MM/yyyy")
-                        — Valor: R$ @viagemMotivoMostrar.ValorFinal.ToString("N2")
-                    </p>
-                    <div class="p-3 bg-light rounded border">
-                        <p class="mb-0 text-dark fw-medium text-wrap" style="white-space: pre-wrap; text-align: left;">
-                            @viagemMotivoMostrar.MotivoContestacao
-                        </p>
+                @if (viagens is not null && viagens.Count > 0 && !mesOcultoParaGestor)
+                {
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            @if (jaConfirmou && viagens.Any(v => v.StatusConferenciaGestor == "Pendente"))
+                            {
+                                <div class="alert alert-danger mb-0">
+                                    <Icon Name="triangle-exclamation" Size="16" Class="text-danger me-1" />
+                                    <strong>Novas Pendências!</strong> Novas viagens foram importadas para este mês após a confirmação realizada
+                                    por
+                                    <strong>@confirmadoPorNome</strong> em @confirmadoEm?.ToString("dd/MM/yyyy HH:mm").
+                                    Analise as novas viagens pendentes na tabela acima para poder reconfirmar o mês.
+                                </div>
+                            }
+                            else if (jaConfirmou && confirmadoPorNome is not null)
+                            {
+                                <div class="alert alert-success mb-0">
+                                    <Icon Name="circle-check" Size="16" Class="text-success me-1" /> Verificação de
+                                    <strong>@($"{mesSelecionado:D2}/{anoSelecionado}")</strong> confirmada por
+                                    <strong>@confirmadoPorNome</strong> em @confirmadoEm?.ToString("dd/MM/yyyy HH:mm")
+                                </div>
+                            }
+                            else if (jaConfirmou)
+                            {
+                                <div class="alert alert-success mb-0">
+                                    <Icon Name="circle-check" Size="16" Class="text-success me-1" /> Verificação do mês
+                                    <strong>@($"{mesSelecionado:D2}/{anoSelecionado}")</strong> já foi confirmada.
+                                </div>
+                            }
+                            else
+                            {
+                                <div
+                                    class="alert @(todasVerificadas ? "alert-info" : "alert-warning") mb-0 d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                    <div>
+                                        @if (todasVerificadas)
+                                        {
+                                            <span>Todas as viagens foram analisadas! Confirme a verificação do mês.</span>
+                                        }
+                                        else
+                                        {
+                                            <span>
+                                                <Icon Name="clock" Size="16" Class="text-warning me-1" /> Ainda há <strong>@viagens.Count(v =>
+                                                                        v.StatusConferenciaGestor == "Pendente")</strong> viagem(ns) pendente(s). Analise todas para
+                                                poder confirmar o mês.
+                                            </span>
+                                        }
+                                    </div>
+                                    <button class="btn btn-success @(!todasVerificadas ? "opacity-50" : "")" @onclick="ConfirmarMes"
+                                            disabled="@(confirmando || isSomenteLeitura)">
+                                        @if (confirmando)
+                                        {
+                                            <span class="spinner-border spinner-border-sm me-2"></span>
+                                        }
+                                        <Icon Name="circle-check" Size="14" /> Confirmar Verificação de
+                                        @($"{mesSelecionado:D2}/{anoSelecionado}")
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (viagensFiltradas.Count == 0)
+                {
+                    <div class="alert alert-info">Nenhuma viagem encontrada com os filtros selecionados.</div>
+                }
+                <!-- Paginação: seletor de itens por página -->
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <!-- Esquerda: Seleção de qtd por página -->
+                    <div class="d-flex align-items-center gap-2" style="flex: 1;">
+                        <small class="text-muted">Exibir</small>
+                        <select class="form-select form-select-sm filter-select" style="width: auto;" @bind="itensPorPagina"
+                                @bind:after="OnPageSizeChanged">
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                            <option value="30">30</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                        <small class="text-muted">viagens por página</small>
+                        <span class="badge bg-secondary">
+                            @viagensFiltradas.Count viagem(ns)
+                        </span>
+                    </div>
+
+                    <!-- Centro: Paginação -->
+                    <div class="d-flex justify-content-center" style="flex: 1;">
+                        @if (totalPaginas > 1)
+                        {
+                            <nav>
+                                <ul class="pagination pagination-sm mb-0">
+                                    <li class="page-item @(paginaAtual == 1 ? "disabled" : "")">
+                                        <button class="page-link" @onclick="() => IrParaPagina(paginaAtual - 1)">&laquo;</button>
+                                    </li>
+                                    @for (int i = 1; i <= totalPaginas; i++)
+                                    {
+                                        var pg = i;
+                                        <li class="page-item @(pg == paginaAtual ? "active" : "")">
+                                            <button class="page-link" @onclick="() => IrParaPagina(pg)">@pg</button>
+                                        </li>
+                                    }
+                                    <li class="page-item @(paginaAtual == totalPaginas ? "disabled" : "")">
+                                        <button class="page-link" @onclick="() => IrParaPagina(paginaAtual + 1)">&raquo;</button>
+                                    </li>
+                                </ul>
+                            </nav>
+                        }
+                    </div>
+
+                    <!-- Direita: Texto página atual -->
+                    <div class="d-flex justify-content-end align-items-center" style="flex: 1;">
+                        <small class="text-muted">Página @paginaAtual de @totalPaginas</small>
                     </div>
                 </div>
-                <div class="modal-footer bg-light">
-                    <button class="btn btn-secondary btn-sm" @onclick="FecharMotivoContestacao">Fechar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-}
 
-@* Modal de Confirmação de Reversão de Contestação *@
-@if (viagemReverterConfirmar is not null)
-{
-    <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title d-flex align-items-center gap-2 fw-bold">
-                        <Icon Name="triangle-exclamation" Size="18" /> Confirmar Reversão
-                    </h5>
-                    <button type="button" class="btn-close" @onclick="FecharReversaoConfirmar"></button>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="text-center border-end border-dark" style="width: 50px;">#</th>
+                                <th class="text-center" role="button" @onclick="AlternarOrdemData" style="cursor:pointer;">
+                                    Início da Viagem @(ordenarDataAsc ? "▲" : "▼")
+                                </th>
+                                <th class="text-center">Fim da Viagem</th>
+                                <th class="text-center">Colaborador</th>
+                                <th class="text-center">Origem</th>
+                                <th class="text-center">Destino</th>
+                                <th class="text-center">Motivo da Viagem</th>
+                                <th class="text-center">Parceiro</th>
+                                <th class="text-center">Valor Final</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center">Ateste da viagem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int rowIndex = (paginaAtual - 1) * itensPorPagina + 1;
+                            }
+                            @foreach (var v in viagensPaginadas)
+                            {
+                                <tr>
+                                    <td class="text-center text-muted fw-bold border-end border-dark">@(rowIndex++)</td>
+                                    <td class="text-center">
+                                        @v.DataViagem.ToString("dd/MM/yyyy")<br />
+                                        @v.HoraInicio.ToString("HH:mm")
+                                    </td>
+                                    <td class="text-center">
+                                        @CalcDataFim(v).ToString("dd/MM/yyyy")<br />
+                                        @v.HoraFim.ToString("HH:mm")
+                                    </td>
+                                    <td class="text-center">@v.Colaborador.Nome</td>
+                                    <td class="text-center">@v.Origem</td>
+                                    <td class="text-center">@v.Destino</td>
+                                    <td class="text-center">@v.Motivo</td>
+                                    <td class="text-center">@v.Parceiro.Nome</td>
+                                    <td class="text-center">R$ @v.ValorFinal.ToString("N2")</td>
+                                    <td class="text-center">
+                                        @switch (v.StatusConferenciaGestor)
+                                        {
+                                            case "Pendente":
+                                                <span class="badge bg-warning text-dark">
+                                                    <Icon Name="clock" Size="12" /> Pendente
+                                                </span>
+                                                break;
+                                            case "OK":
+                                                <span class="badge bg-success">
+                                                    <Icon Name="circle-check" Size="12" /> Atestada
+                                                </span>
+                                                break;
+                                            case "Considerado":
+                                                <span class="badge text-white" style="background-color: #6f42c1;">
+                                                    <Icon Name="circle-check" Size="12" /> Considerada
+                                                </span>
+                                                break;
+                                            case "Contestada":
+                                                <button type="button"
+                                                        class="badge bg-danger border-0 d-inline-flex align-items-center gap-1 btn-badge-contestada"
+                                                        style="cursor: pointer; user-select: none;" @onclick="() => MostrarMotivoContestacao(v)"
+                                                        title="Clique para ver o motivo da contestação">
+                                                    <Icon Name="circle-xmark" Size="12" /> Contestada
+                                                </button>
+                                                break;
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (isSomenteLeitura)
+                                        {
+                                            <span class="text-muted small">Sem permissão</span>
+                                        }
+                                        else
+                                        {
+                                            @if (v.StatusConferenciaGestor == "Pendente")
+                                            {
+                                                <button class="btn btn-sm btn-success me-1" @onclick="() => Aprovar(v)">
+                                                    <Icon Name="circle-check" Size="14" /> Atestar
+                                                </button>
+                                                <button class="btn btn-sm btn-danger" @onclick="() => AbrirContestacao(v)">
+                                                    <Icon Name="circle-xmark" Size="14" /> Contestar
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                bool viagemBloqueada = mesFoiLiberado && v.StatusConferenciaGestor != "Considerado" &&
+                                v.DataConferencia < dataLiberacao;
+                                                if (viagemBloqueada)
+                                                {
+                                                    <span class="text-muted small">Sem permissão</span>
+                                                }
+                                                else
+                                                {
+                                                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => SolicitarReversao(v)">
+                                                        <Icon Name="rotate-left" Size="14" /> Reverter
+                                                    </button>
+                                                }
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 </div>
-                <div class="modal-body text-start">
-                    <p class="mb-3">
-                        Você está prestes a reverter a contestação desta viagem.
-                        Ao fazer isso, o motivo abaixo será <strong>excluído permanentemente</strong>:
-                    </p>
-                    <div class="p-3 bg-light rounded border mb-3">
-                        <p class="mb-0 text-muted small">
-                            Viagem de <strong>@viagemReverterConfirmar.Colaborador.Nome</strong> — Valor: R$
-                            @viagemReverterConfirmar.ValorFinal.ToString("N2")
-                        </p>
-                        <hr class="my-2" />
-                        <p class="mb-0 text-dark fw-semibold text-wrap" style="white-space: pre-wrap; text-align: left;">
-                            @viagemReverterConfirmar.MotivoContestacao
-                        </p>
+
+                <!-- Navegação de páginas -->
+                @if (totalPaginas > 1)
+                {
+                    <nav>
+                        <ul class="pagination pagination-sm justify-content-center">
+                            <li class="page-item @(paginaAtual == 1 ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => IrParaPagina(paginaAtual - 1)">&laquo;</button>
+                            </li>
+                            @for (int i = 1; i <= totalPaginas; i++)
+                            {
+                                var pg = i;
+                                <li class="page-item @(pg == paginaAtual ? "active" : "")">
+                                    <button class="page-link" @onclick="() => IrParaPagina(pg)">@pg</button>
+                                </li>
+                            }
+                            <li class="page-item @(paginaAtual == totalPaginas ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => IrParaPagina(paginaAtual + 1)">&raquo;</button>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+
+                <!-- Confirmação Mensal -->
+                @if (viagens is not null && viagens.Count > 0)
+                {
+                    <div class="card shadow-sm mt-4">
+                        <div class="card-body">
+                            @if (jaConfirmou && viagens.Any(v => v.StatusConferenciaGestor == "Pendente"))
+                            {
+                                <div class="alert alert-danger mb-0">
+                                    <Icon Name="triangle-exclamation" Size="16" Class="text-danger me-1" />
+                                    <strong>Novas Pendências!</strong> Novas viagens foram importadas para este mês após a confirmação realizada
+                                    por
+                                    <strong>@confirmadoPorNome</strong> em @confirmadoEm?.ToString("dd/MM/yyyy HH:mm").
+                                    Analise as novas viagens pendentes na tabela acima para poder reconfirmar o mês.
+                                </div>
+                            }
+                            else if (jaConfirmou && confirmadoPorNome is not null)
+                            {
+                                <div class="alert alert-success mb-0">
+                                    <Icon Name="circle-check" Size="16" Class="text-success me-1" /> Verificação de
+                                    <strong>@($"{mesSelecionado:D2}/{anoSelecionado}")</strong> confirmada por
+                                    <strong>@confirmadoPorNome</strong> em @confirmadoEm?.ToString("dd/MM/yyyy HH:mm")
+                                </div>
+                            }
+                            else if (jaConfirmou)
+                            {
+                                <div class="alert alert-success mb-0">
+                                    <Icon Name="circle-check" Size="16" Class="text-success me-1" /> Verificação do mês
+                                    <strong>@($"{mesSelecionado:D2}/{anoSelecionado}")</strong> já foi confirmada.
+                                </div>
+                            }
+                            else
+                            {
+                                <div
+                                    class="alert @(todasVerificadas ? "alert-info" : "alert-warning") mb-0 d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                    <div>
+                                        @if (todasVerificadas)
+                                        {
+                                            <span>Todas as viagens foram analisadas! Confirme a verificação do mês.</span>
+                                        }
+                                        else
+                                        {
+                                            <span>
+                                                <Icon Name="clock" Size="16" Class="text-warning me-1" /> Ainda há <strong>@viagens.Count(v =>
+                                                                        v.StatusConferenciaGestor == "Pendente")</strong> viagem(ns) pendente(s). Analise todas para
+                                                poder confirmar o mês.
+                                            </span>
+                                        }
+                                    </div>
+                                    <button class="btn btn-success @(!todasVerificadas ? "opacity-50" : "")" @onclick="ConfirmarMes"
+                                            disabled="@(confirmando || isSomenteLeitura)">
+                                        @if (confirmando)
+                                        {
+                                            <span class="spinner-border spinner-border-sm me-2"></span>
+                                        }
+                                        <Icon Name="circle-check" Size="14" /> Confirmar Verificação de
+                                        @($"{mesSelecionado:D2}/{anoSelecionado}")
+                                    </button>
+                                </div>
+                            }
+                        </div>
                     </div>
-                    <p class="text-danger fw-bold mb-0 small">
-                        Deseja realmente reverter e apagar o motivo da contestação?
-                    </p>
+                }
+            }
+
+            @* Modal de contestação *@
+            @if (viagemContestar is not null)
+            {
+                <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Contestar Viagem</h5>
+                                <button type="button" class="btn-close" @onclick="FecharContestacao"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>
+                                    Viagem de <strong>@viagemContestar.Colaborador.Nome</strong>
+                                    em @viagemContestar.DataViagem.ToString("dd/MM/yyyy")
+                                    — R$ @viagemContestar.ValorFinal.ToString("N2")
+                                </p>
+                                <div class="mb-3">
+                                    <label class="form-label">Motivo da contestação</label>
+                                    <textarea class="form-control" rows="3" @bind="motivoContestacao"
+                                              placeholder="Descreva o motivo..."></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-secondary" @onclick="FecharContestacao">Cancelar</button>
+                                <button class="btn btn-danger" @onclick="ConfirmarContestacao"
+                                        disabled="@string.IsNullOrWhiteSpace(motivoContestacao)">
+                                    Confirmar Contestação
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-footer bg-light">
-                    <button class="btn btn-secondary btn-sm" @onclick="FecharReversaoConfirmar">Cancelar</button>
-                    <button class="btn btn-warning btn-sm fw-bold text-dark" @onclick="ConfirmarReversaoContestada">
-                        <Icon Name="rotate-left" Size="12" /> Reverter e Excluir
-                    </button>
+            }
+
+            @* Modal para exibir o motivo de contestação *@
+            @if (viagemMotivoMostrar is not null)
+            {
+                <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow">
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title d-flex align-items-center gap-2">
+                                    <Icon Name="circle-xmark" Size="18" /> Motivo da Contestação
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" @onclick="FecharMotivoContestacao"></button>
+                            </div>
+                            <div class="modal-body text-start">
+                                <p class="mb-3 small text-muted">
+                                    Viagem de <strong>@viagemMotivoMostrar.Colaborador.Nome</strong>
+                                    em @viagemMotivoMostrar.DataViagem.ToString("dd/MM/yyyy")
+                                    — Valor: R$ @viagemMotivoMostrar.ValorFinal.ToString("N2")
+                                </p>
+                                <div class="p-3 bg-light rounded border">
+                                    <p class="mb-0 text-dark fw-medium text-wrap" style="white-space: pre-wrap; text-align: left;">
+                                        @viagemMotivoMostrar.MotivoContestacao
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="modal-footer bg-light">
+                                <button class="btn btn-secondary btn-sm" @onclick="FecharMotivoContestacao">Fechar</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
-}
+            }
+
+            @* Modal de Confirmação de Reversão de Contestação *@
+            @if (viagemReverterConfirmar is not null)
+            {
+                <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow">
+                            <div class="modal-header bg-warning text-dark">
+                                <h5 class="modal-title d-flex align-items-center gap-2 fw-bold">
+                                    <Icon Name="triangle-exclamation" Size="18" /> Confirmar Reversão
+                                </h5>
+                                <button type="button" class="btn-close" @onclick="FecharReversaoConfirmar"></button>
+                            </div>
+                            <div class="modal-body text-start">
+                                <p class="mb-3">
+                                    Você está prestes a reverter a contestação desta viagem.
+                                    Ao fazer isso, o motivo abaixo será <strong>excluído permanentemente</strong>:
+                                </p>
+                                <div class="p-3 bg-light rounded border mb-3">
+                                    <p class="mb-0 text-muted small">
+                                        Viagem de <strong>@viagemReverterConfirmar.Colaborador.Nome</strong> — Valor: R$
+                                        @viagemReverterConfirmar.ValorFinal.ToString("N2")
+                                    </p>
+                                    <hr class="my-2" />
+                                    <p class="mb-0 text-dark fw-semibold text-wrap" style="white-space: pre-wrap; text-align: left;">
+                                        @viagemReverterConfirmar.MotivoContestacao
+                                    </p>
+                                </div>
+                                <p class="text-danger fw-bold mb-0 small">
+                                    Deseja realmente reverter e apagar o motivo da contestação?
+                                </p>
+                            </div>
+                            <div class="modal-footer bg-light">
+                                <button class="btn btn-secondary btn-sm" @onclick="FecharReversaoConfirmar">Cancelar</button>
+                                <button class="btn btn-warning btn-sm fw-bold text-dark" @onclick="ConfirmarReversaoContestada">
+                                    <Icon Name="rotate-left" Size="12" /> Reverter e Excluir
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @* Modal de Aviso de Pendências *@
+            @if (exibirModalAvisoPendencias)
+            {
+                <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow">
+                            <div class="modal-header bg-warning text-dark">
+                                <h5 class="modal-title d-flex align-items-center gap-2 fw-bold">
+                                    <Icon Name="triangle-exclamation" Size="18" /> Atenção
+                                </h5>
+                                <button type="button" class="btn-close" @onclick="() => exibirModalAvisoPendencias = false"></button>
+                            </div>
+                            <div class="modal-body text-start">
+                                <p class="mb-0">
+                                    Ainda há <strong>@(viagens?.Count(v => v.StatusConferenciaGestor == "Pendente") ?? 0)</strong>
+                                    viagem(ns) pendente(s). Você precisa analisar <strong>todas as viagens pendentes</strong> para poder
+                                    confirmar o mês.
+                                </p>
+                            </div>
+                            <div class="modal-footer bg-light">
+                                <button class="btn btn-secondary btn-sm"
+                                        @onclick="() => exibirModalAvisoPendencias = false">Entendi</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
 
 @code {
     private bool temPermissao;
@@ -487,6 +635,7 @@ else
     private bool mesFoiLiberado = false;
     private DateTime? dataLiberacao = null;
     private string? nomeQuemEncerrou;
+    private bool exibirModalAvisoPendencias = false;
 
     private int mesSelecionado = DateTime.Now.Month;
     private int anoSelecionado = DateTime.Now.Year;
@@ -505,6 +654,7 @@ else
     private bool confirmando;
     private string? confirmadoPorNome;
     private DateTime? confirmadoEm;
+    private bool mesOcultoParaGestor;
 
     // Ordenação e paginação
     private bool ordenarDataAsc;
@@ -603,6 +753,21 @@ else
                     dataLiberacao = encerramento.DataLiberacao;
                 }
             }
+        }
+
+        mesOcultoParaGestor = false;
+        if (!isAdmin)
+        {
+            if (mesEncerradoParaGestor) mesOcultoParaGestor = true;
+            if (anoSelecionado == 2026 && mesSelecionado >= 2 && mesSelecionado <= 5) mesOcultoParaGestor = true;
+        }
+
+        if (mesOcultoParaGestor)
+        {
+            viagens = new List<Viagem>();
+            Filtrar();
+            await VerificarConfirmacao();
+            return;
         }
 
         // Filtro por mês/ano
@@ -815,6 +980,12 @@ else
 
     private async Task ConfirmarMes()
     {
+        if (!todasVerificadas)
+        {
+            exibirModalAvisoPendencias = true;
+            return;
+        }
+
         var centroCustoId = isAdmin ? centroCustoSelecionadoId : UserSession.UsuarioLogado!.CentroCustoId;
         if (!centroCustoId.HasValue) return;
 

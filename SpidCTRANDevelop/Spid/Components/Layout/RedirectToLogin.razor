@@ -6,7 +6,7 @@
 @inject IDbContextFactory<AppDbContext> DbFactory
 @inject AuthenticationStateProvider AuthStateProvider
 
-@if (UserSession.IsAuthenticated)
+@if (UserSession.IsAuthenticated && UserSession.UsuarioLogado?.ContadorAcessos > 0)
 {
     @ChildContent
 }
@@ -17,20 +17,25 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (UserSession.IsAuthenticated) return;
-
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-
-        if (user.Identity?.IsAuthenticated == true)
+        if (!UserSession.IsAuthenticated)
         {
-            await using var db = await DbFactory.CreateDbContextAsync();
-            await UserSession.TryRestoreFromClaimsAsync(user, db, null);
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                await using var db = await DbFactory.CreateDbContextAsync();
+                await UserSession.TryRestoreFromClaimsAsync(user, db, null);
+            }
         }
 
         if (!UserSession.IsAuthenticated)
         {
             Nav.NavigateTo("/login", forceLoad: true);
+        }
+        else if (UserSession.UsuarioLogado?.ContadorAcessos == 0)
+        {
+            Nav.NavigateTo("/primeiro-acesso", forceLoad: true);
         }
     }
 }

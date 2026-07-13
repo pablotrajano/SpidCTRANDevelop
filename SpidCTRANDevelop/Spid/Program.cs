@@ -216,6 +216,8 @@ app.MapGet("/login", (HttpContext ctx) =>
         "usuario" => """<div class="alert alert-danger" role="alert">Ponto não encontrado ou usuário inativo.</div>""",
         "senha" => """<div class="alert alert-danger" role="alert">Senha incorreta.</div>""",
         "faltap" => """<div class="alert alert-warning" role="alert">O Ponto deve começar com <strong>P_</strong>. Ex: P_123456</div>""",
+        "ja_acessou" => """<div class="alert alert-warning" role="alert">Este usuário já realizou o primeiro acesso. Por favor, faça login com sua senha.</div>""",
+        "use_primeiro_acesso" => """<div class="alert alert-info" role="alert">Este é o seu primeiro acesso. Por favor, utilize o botão <strong>Primeiro Acesso</strong> abaixo.</div>""",
         _ => ""
     };
 
@@ -352,7 +354,15 @@ app.MapGet("/login", (HttpContext ctx) =>
                 <button type="submit" class="btn btn-primary w-100">Entrar</button>
 
                 <br /><br />
-                <a href="javascript:void(0)" onclick="openModal()" class="text-center mb-2 d-block">Esqueci minha senha</a>
+                <div class="d-flex w-100 align-items-center mt-1">
+                    <div class="text-center" style="flex: 1 1 0;">
+                        <a href="javascript:void(0)" onclick="openPrimeiroAcessoModal()" class="text-decoration-none">Primeiro Acesso</a>
+                    </div>
+                    <span class="text-muted">|</span>
+                    <div class="text-center" style="flex: 1 1 0;">
+                        <a href="javascript:void(0)" onclick="openModal()" class="text-decoration-none" style="font-size: 0.82em;">Esqueci minha senha</a>
+                    </div>
+                </div>
             </form>
         </main>
 
@@ -375,17 +385,53 @@ app.MapGet("/login", (HttpContext ctx) =>
             </div>
         </div>
 
+        <!-- Modal Primeiro Acesso -->
+        <div id="primeiroAcessoModal" class="custom-modal">
+            <div class="custom-modal-content">
+                <div class="custom-modal-header">
+                    <h5>Primeiro Acesso</h5>
+                    <span class="custom-close" onclick="closePrimeiroAcessoModal()">&times;</span>
+                </div>
+                <div class="custom-modal-body">
+                    <form method="post" action="/do-primeiro-acesso">
+                        <p class="mb-3">Informe seu Ponto para realizar o primeiro acesso no sistema:</p>
+                        <div class="mb-3">
+                            <input id="pontoPrimeiroAcesso" name="ponto" type="text" class="form-control" placeholder="Ex: P_******" required autocomplete="off" />
+                        </div>
+                        <div class="d-flex justify-content-center gap-3 mt-2">
+                            <button type="button" class="btn btn-secondary px-4" onclick="closePrimeiroAcessoModal()">Cancelar</button>
+                            <button type="submit" class="btn btn-primary px-4">Avançar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <script>
             function openModal() {
                 document.getElementById('forgotPasswordModal').style.display = 'flex';
             }
+
             function closeModal() {
                 document.getElementById('forgotPasswordModal').style.display = 'none';
+            }
+
+            function openPrimeiroAcessoModal() {
+                document.getElementById('primeiroAcessoModal').style.display = 'flex';
+                setTimeout(() => document.getElementById('pontoPrimeiroAcesso').focus(), 100);
+            }
+
+            function closePrimeiroAcessoModal() {
+                document.getElementById('primeiroAcessoModal').style.display = 'none';
             }
             window.onclick = function(event) {
                 var modal = document.getElementById('forgotPasswordModal');
                 if (event.target == modal) {
                     closeModal();
+                }
+                var modalPA = document.getElementById('primeiroAcessoModal');
+                if (event.target == modalPA) {
+                    closePrimeiroAcessoModal();
                 }
             }
         </script>
@@ -404,6 +450,59 @@ app.MapGet("/logout-handler", async (HttpContext ctx) =>
 {
     await ctx.SignOutAsync("SpidCookie");
     return Results.Redirect("/login");
+});
+
+app.MapPost("/do-primeiro-acesso", async (HttpContext ctx, AppDbContext db) =>
+{
+    var form = await ctx.Request.ReadFormAsync();
+    var ponto = form["ponto"].ToString().Trim();
+    
+    if (ponto.StartsWith("p_", StringComparison.OrdinalIgnoreCase))
+    {
+        ponto = ponto.ToLower();
+    }
+
+    if (string.IsNullOrWhiteSpace(ponto))
+        return Results.Redirect("/login?erro=campos");
+
+    var usuario = await db.Usuarios
+        .FirstOrDefaultAsync(u => u.Ponto == ponto && u.Ativo);
+
+    if (usuario is null)
+    {
+        var possivelPonto = "p_" + ponto;
+        bool esqueceuP = ponto.Length > 4 || await db.Usuarios.AnyAsync(u => u.Ponto.ToLower() == possivelPonto.ToLower() && u.Ativo);
+        
+        if (esqueceuP)
+        {
+            return Results.Redirect("/login?erro=faltap");
+        }
+        return Results.Redirect("/login?erro=usuario");
+    }
+
+    if (usuario.ContadorAcessos > 0)
+        return Results.Redirect("/login?erro=ja_acessou");
+
+    var sessionTimeoutMinutes = ctx.RequestServices.GetRequiredService<IConfiguration>().GetValue<int>("SessionTimeoutMinutes", 45);
+    var expiresUtc = DateTimeOffset.UtcNow.AddMinutes(sessionTimeoutMinutes);
+
+    var claims = new List<System.Security.Claims.Claim>
+    {
+        new("UserId", usuario.Id.ToString()),
+        new(System.Security.Claims.ClaimTypes.Name, usuario.Nome),
+        new("SessionExpiresUtc", expiresUtc.ToString("o"))
+    };
+
+    var identity = new System.Security.Claims.ClaimsIdentity(claims, "SpidCookie");
+    var principal = new System.Security.Claims.ClaimsPrincipal(identity);
+
+    await ctx.SignInAsync("SpidCookie", principal, new AuthenticationProperties
+    {
+        IsPersistent = false,
+        ExpiresUtc = expiresUtc
+    });
+
+    return Results.Redirect("/primeiro-acesso");
 });
 
 app.MapPost("/do-login", async (HttpContext ctx, AppDbContext db) =>
@@ -439,10 +538,9 @@ app.MapPost("/do-login", async (HttpContext ctx, AppDbContext db) =>
         return Results.Redirect("/login?erro=usuario");
     }
 
-    // No primeiro acesso, a senha inicial é igual ao Ponto. Normalizando para p minúsculo.
-    if (usuario.ContadorAcessos == 0 && senha.StartsWith("p_", StringComparison.OrdinalIgnoreCase))
+    if (usuario.ContadorAcessos == 0)
     {
-        senha = senha.ToLower();
+        return Results.Redirect("/login?erro=use_primeiro_acesso");
     }
 
     var hasher = new Microsoft.AspNetCore.Identity.PasswordHasher<Usuario>();
@@ -469,9 +567,6 @@ app.MapPost("/do-login", async (HttpContext ctx, AppDbContext db) =>
         IsPersistent = true,
         ExpiresUtc = expiresUtc
     });
-
-    if (usuario.ContadorAcessos == 0)
-        return Results.Redirect("/primeiro-acesso");
 
     return Results.Redirect("/");
 }).DisableAntiforgery();

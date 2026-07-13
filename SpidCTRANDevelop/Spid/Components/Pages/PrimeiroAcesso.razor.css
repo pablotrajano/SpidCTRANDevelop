@@ -3,15 +3,19 @@
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    background: linear-gradient(135deg, #1a2340 0%, #1a73e8 100%);
+    margin: 0;
+    padding: 1rem;
 }
+
+
 
 .login-card {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 16px;
     padding: 2.5rem;
     width: 100%;
-    max-width: 480px;
+    max-width: 900px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
@@ -39,6 +43,29 @@
 .login-card .btn-primary:active {
     transform: translateY(0);
     box-shadow: 0 3px 10px rgba(26, 115, 232, 0.28);
+}
+
+.login-card .btn-danger-custom {
+    background: linear-gradient(135deg, #c92a2a, #a61e1e);
+    border: none;
+    padding: 0.75rem 1rem;
+    font-weight: 700;
+    color: white;
+    border-radius: 8px;
+    box-shadow: 0 3px 10px rgba(201, 42, 42, 0.28);
+    transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+
+.login-card .btn-danger-custom:hover {
+    transform: translateY(-1px);
+    background: linear-gradient(135deg, #e03131, #b02323);
+    box-shadow: 0 6px 16px rgba(201, 42, 42, 0.34);
+    color: white;
+}
+
+.login-card .btn-danger-custom:active {
+    transform: translateY(0);
+    box-shadow: 0 3px 10px rgba(201, 42, 42, 0.28);
 }
 
 .login-card .form-control {

@@ -370,12 +370,20 @@ else
                                         {
                                             @if (v.StatusConferenciaGestor == "Pendente")
                                             {
-                                                <button class="btn btn-sm btn-success me-1" @onclick="() => Aprovar(v)">
-                                                    <Icon Name="circle-check" Size="14" /> Atestar
-                                                </button>
-                                                <button class="btn btn-sm btn-danger" @onclick="() => AbrirContestacao(v)">
-                                                    <Icon Name="circle-xmark" Size="14" /> Contestar
-                                                </button>
+                                                bool isPropriaViagem = !isAdmin && v.Colaborador.Cpf == UserSession.UsuarioLogado!.Cpf;
+                                                @if (isPropriaViagem)
+                                                {
+                                                    <span class="badge bg-secondary">Sua Viagem</span>
+                                                }
+                                                else
+                                                {
+                                                    <button class="btn btn-sm btn-success me-1" @onclick="() => Aprovar(v)" disabled="@confirmando">
+                                                        <Icon Name="circle-check" Size="14" /> Atestar
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger" @onclick="() => AbrirContestacao(v)" disabled="@confirmando">
+                                                        <Icon Name="circle-xmark" Size="14" /> Contestar
+                                                    </button>
+                                                }
                                             }
                                             else
                                             {
@@ -807,13 +815,24 @@ else
 
         var conferencia = await Db.ConferenciasMensais
             .Include(c => c.Usuario)
-            .FirstOrDefaultAsync(c => c.CentroCustoId == centroCustoId.Value && c.Ano == anoSelecionado && c.Mes == mesSelecionado);
+            .Where(c => c.CentroCustoId == centroCustoId.Value && c.Ano == anoSelecionado && c.Mes == mesSelecionado)
+            .OrderByDescending(c => c.DataConfirmacao)
+            .FirstOrDefaultAsync();
 
         jaConfirmou = conferencia is not null;
         confirmadoPorNome = conferencia?.Usuario.Nome;
         confirmadoEm = conferencia?.DataConfirmacao;
 
-        todasVerificadas = viagens.Count > 0 && viagens.All(v => v.StatusConferenciaGestor != "Pendente");
+        // Se for admin, todas precisam estar verificadas. Se for gestor, só as que não são dele próprio.
+        if (isAdmin)
+        {
+            todasVerificadas = viagens.Count > 0 && viagens.All(v => v.StatusConferenciaGestor != "Pendente");
+        }
+        else
+        {
+            var viagensPermitidas = viagens.Where(v => v.Colaborador.Cpf != UserSession.UsuarioLogado!.Cpf).ToList();
+            todasVerificadas = viagensPermitidas.Count > 0 && viagensPermitidas.All(v => v.StatusConferenciaGestor != "Pendente");
+        }
     }
 
     private void Filtrar()
@@ -883,6 +902,7 @@ else
         v.StatusConferenciaGestor = "OK";
         v.DataConferencia = DateTime.Now;
         v.MotivoContestacao = null;
+        if (!isAdmin) v.ConferidoPorUsuarioId = UserSession.UsuarioLogado?.Id;
         await Db.SaveChangesAsync();
         await InvalidarConfirmacao();
         Filtrar();
@@ -918,6 +938,7 @@ else
         viagemContestar.StatusConferenciaGestor = "Contestada";
         viagemContestar.DataConferencia = DateTime.Now;
         viagemContestar.MotivoContestacao = motivoContestacao;
+        if (!isAdmin) viagemContestar.ConferidoPorUsuarioId = UserSession.UsuarioLogado?.Id;
         await Db.SaveChangesAsync();
 
         FecharContestacao();
@@ -931,6 +952,7 @@ else
         v.StatusConferenciaGestor = "Pendente";
         v.DataConferencia = null;
         v.MotivoContestacao = null;
+        v.ConferidoPorUsuarioId = null;
         await Db.SaveChangesAsync();
         await InvalidarConfirmacao();
         Filtrar();
@@ -965,17 +987,8 @@ else
     /// Remove a confirmação existente deste centro de custo/mês para forçar reconfirmação
     private async Task InvalidarConfirmacao()
     {
-        var centroCustoId = isAdmin ? centroCustoSelecionadoId : UserSession.UsuarioLogado!.CentroCustoId;
-        if (!centroCustoId.HasValue) return;
-
-        var conf = await Db.ConferenciasMensais
-            .FirstOrDefaultAsync(c => c.CentroCustoId == centroCustoId.Value && c.Ano == anoSelecionado && c.Mes == mesSelecionado);
-
-        if (conf is not null)
-        {
-            Db.ConferenciasMensais.Remove(conf);
-            await Db.SaveChangesAsync();
-        }
+        // Mantemos o histórico de conferências, então não apagamos a ConferenciaMensal anterior.
+        await Task.CompletedTask;
     }
 
     private async Task ConfirmarMes()
@@ -992,13 +1005,25 @@ else
         confirmando = true;
         try
         {
+            var loggedUserId = UserSession.UsuarioLogado!.Id;
+            var loggedUserCpf = UserSession.UsuarioLogado!.Cpf;
+            
+            var qtdOk = viagens!.Count(v => v.ConferidoPorUsuarioId == loggedUserId && v.StatusConferenciaGestor == "OK");
+            var qtdContestadas = viagens!.Count(v => v.ConferidoPorUsuarioId == loggedUserId && v.StatusConferenciaGestor == "Contestada");
+            // Viagens do outro gestor atestadas por mim
+            var qtdOutroGestor = viagens!.Count(v => v.ConferidoPorUsuarioId == loggedUserId && 
+                                                    (v.Colaborador.Cpf != loggedUserCpf && (v.StatusConferenciaGestor == "OK" || v.StatusConferenciaGestor == "Contestada")));
+
             var conferencia = new ConferenciaMensal
             {
                 CentroCustoId = centroCustoId.Value,
                 Ano = anoSelecionado,
                 Mes = mesSelecionado,
-                UsuarioId = UserSession.UsuarioLogado!.Id,
-                DataConfirmacao = DateTime.Now
+                UsuarioId = loggedUserId,
+                DataConfirmacao = DateTime.Now,
+                QtdViagensOk = qtdOk,
+                QtdViagensContestadas = qtdContestadas,
+                QtdViagensOutroGestor = qtdOutroGestor
             };
             Db.ConferenciasMensais.Add(conferencia);
             await Db.SaveChangesAsync();

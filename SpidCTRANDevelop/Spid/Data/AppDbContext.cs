@@ -98,10 +98,15 @@ public class AppDbContext : DbContext
             .HasIndex(pr => new { pr.Perfil, pr.RecursoId })
             .IsUnique();
 
-        // Índice único: só uma confirmação por centroCusto/mês/ano
+        // Índice: confirmações por centroCusto/mês/ano (pode haver mais de uma agora)
         modelBuilder.Entity<ConferenciaMensal>()
-            .HasIndex(c => new { c.CentroCustoId, c.Ano, c.Mes })
-            .IsUnique();
+            .HasIndex(c => new { c.CentroCustoId, c.Ano, c.Mes });
+
+        modelBuilder.Entity<Viagem>()
+            .HasOne(v => v.ConferidoPorUsuario)
+            .WithMany()
+            .HasForeignKey(v => v.ConferidoPorUsuarioId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // EncerramentoMensal: índice único por Ano+Mês (global)
         modelBuilder.Entity<EncerramentoMensal>()

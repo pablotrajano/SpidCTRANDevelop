@@ -1,0 +1,334 @@
+@page "/centros-custo"
+@namespace Spid.Components.Pages
+@using Microsoft.EntityFrameworkCore
+@using Spid.Data
+@using Spid.Services
+@using Spid.Components.Shared
+@inject UserSession UserSession
+@inject AppDbContext Db
+
+<PageTitle>Centros de Custo — SPID</PageTitle>
+
+<h3 class="mb-4">
+    <Icon Name="chart-pie" Size="24" Class="page-header-icon" /> Centros de Custo
+</h3>
+
+<style>
+    .bg-roxo-spid th, .bg-roxo-spid {
+        background-color: #6f42c1 !important;
+        color: white !important;
+        border-bottom: 2px solid #5a32a3 !important;
+    }
+</style>
+
+@if (!isAdmin)
+{
+    <div class="alert alert-warning">Você não tem permissão para acessar esta página.</div>
+}
+else
+{
+    <div class="card shadow-sm">
+        <div class="card-body">
+            @if (carregando)
+            {
+                <div class="d-flex justify-content-center p-4">
+                    <span class="spinner-border text-primary"></span>
+                </div>
+            }
+            else if (centrosDeCusto == null || !centrosDeCusto.Any())
+            {
+                <p class="text-muted text-center">Nenhum Centro de Custo encontrado.</p>
+            }
+            else
+            {
+                <div class="d-flex justify-content-end mb-3">
+                    <div style="width: 300px;">
+                        <input type="text" class="form-control" placeholder="Buscar por setor ou gestor..." @bind="filtroPesquisa" @bind:event="oninput" />
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle text-center">
+                        <thead class="bg-roxo-spid">
+                            <tr>
+                                <th class="text-center" style="width: 60px;">#</th>
+                                <th class="text-center">Centro de Custo</th>
+                                <th class="text-center">Gestor Titular</th>
+                                <th class="text-center">Gestor Substituto</th>
+                                <th class="text-center" style="width: 100px;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int index = 1;
+                            }
+                            @foreach (var cc in CentrosDeCustoFiltrados)
+                            {
+                                var gestorTitular = cc.Usuarios.FirstOrDefault(u => u.Perfil == "Gestor Titular");
+                                var gestorSubstituto = cc.Usuarios.FirstOrDefault(u => u.Perfil == "Gestor Substituto");
+
+                                <tr>
+                                    <td class="text-muted">@index</td>
+                                    <td class="fw-bold">@cc.Nome</td>
+                                    <td>@(gestorTitular?.Nome ?? "-")</td>
+                                    <td>@(gestorSubstituto?.Nome ?? "-")</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" title="Editar" @onclick="() => AbrirModalEdicao(cc)">
+                                            <Icon Name="pen-to-square" Size="14" />
+                                        </button>
+                                    </td>
+                                </tr>
+                                index++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@if (isModalAberto)
+{
+    <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #6f42c1; color: white; border-bottom: 2px solid #5a32a3;">
+                    <h5 class="modal-title">Editar Centro de Custo</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="FecharModal" disabled="@salvando"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-bold">Nome do Centro de Custo</label>
+                            <input type="text" class="form-control" @bind="nomeEdicao" disabled="@(salvando || !isApenasAdmin)" />
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-bold">Gestor Titular</label>
+                            <select class="form-select" @bind="titularIdEdicao" disabled="@salvando">
+                                <option value="0">-- Nenhum Gestor Titular --</option>
+                                @foreach (var u in usuariosGestores)
+                                {
+                                    bool emOutroSetor = u.CentroCustoId.HasValue && u.CentroCustoId.Value != ccEditando!.Id;
+                                    <option value="@u.Id" disabled="@emOutroSetor">
+                                        @u.Nome @(emOutroSetor ? "(Já em outro setor)" : "")
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-bold">Gestor Substituto</label>
+                            <select class="form-select" @bind="substitutoIdEdicao" disabled="@salvando">
+                                <option value="0">-- Nenhum Gestor Substituto --</option>
+                                @foreach (var u in usuariosGestores)
+                                {
+                                    bool emOutroSetor = u.CentroCustoId.HasValue && u.CentroCustoId.Value != ccEditando!.Id;
+                                    <option value="@u.Id" disabled="@emOutroSetor">
+                                        @u.Nome @(emOutroSetor ? "(Já em outro setor)" : "")
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-center gap-2">
+                    <button class="btn btn-outline-secondary d-flex align-items-center gap-2" @onclick="InverterGestores" disabled="@salvando" title="Inverter Gestor Titular e Substituto">
+                        <Icon Name="rotate-left" Size="14" /> Inverter Gestores
+                    </button>
+                    <button type="button" class="btn btn-primary d-flex align-items-center gap-2" @onclick="SalvarEdicao" disabled="@salvando">
+                        @if (salvando)
+                        {
+                            <span class="spinner-border spinner-border-sm"></span>
+                        }
+                        Salvar mudanças
+                    </button>
+                    <button type="button" class="btn btn-secondary" @onclick="FecharModal" disabled="@salvando">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool isAdmin;
+    private bool isApenasAdmin;
+    private bool carregando = true;
+    private List<CentroCusto> centrosDeCusto = new();
+    private List<Usuario> usuariosGestores = new();
+    private string filtroPesquisa = "";
+
+    private IEnumerable<CentroCusto> CentrosDeCustoFiltrados
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(filtroPesquisa))
+                return centrosDeCusto;
+
+            return centrosDeCusto.Where(cc =>
+                cc.Nome.Contains(filtroPesquisa, StringComparison.OrdinalIgnoreCase) ||
+                cc.Usuarios.Any(u => (u.Perfil == "Gestor Titular" || u.Perfil == "Gestor Substituto") && 
+                                     u.Nome.Contains(filtroPesquisa, StringComparison.OrdinalIgnoreCase))
+            );
+        }
+    }
+
+    // Estado do Modal
+    private bool isModalAberto = false;
+    private bool salvando = false;
+    private CentroCusto? ccEditando = null;
+    private string nomeEdicao = "";
+    private int titularIdEdicao = 0;
+    private int substitutoIdEdicao = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (UserSession.IsAuthenticated)
+        {
+            var perfil = UserSession.UsuarioLogado!.Perfil;
+            isAdmin = perfil == "Admin" || perfil.StartsWith("Gestor Central");
+            isApenasAdmin = perfil == "Admin";
+
+            if (isAdmin)
+            {
+                await CarregarDados();
+                await CarregarUsuariosGestores();
+            }
+        }
+    }
+
+    private async Task CarregarDados()
+    {
+        carregando = true;
+        try
+        {
+            var dados = await Db.CentrosCusto
+                .Include(c => c.Usuarios)
+                .ToListAsync();
+
+            // Ordenação: 1º Ambos Gestores | 2º Apenas Titular | 3º Sem gestores / Apenas substituto
+            centrosDeCusto = dados.OrderByDescending(c => 
+            {
+                bool temTitular = c.Usuarios.Any(u => u.Perfil == "Gestor Titular");
+                bool temSubstituto = c.Usuarios.Any(u => u.Perfil == "Gestor Substituto");
+                
+                if (temTitular && temSubstituto) return 3;
+                if (temTitular) return 2;
+                return 1;
+            }).ThenBy(c => c.Nome).ToList();
+        }
+        finally
+        {
+            carregando = false;
+        }
+    }
+
+    private async Task CarregarUsuariosGestores()
+    {
+        // Pega apenas gestores comuns e Central Ateste
+        usuariosGestores = await Db.Usuarios
+            .Where(u => u.Perfil == "Gestor Titular" || 
+                        u.Perfil == "Gestor Substituto" || 
+                        u.Perfil == "Gestor Sem Setor" || 
+                        u.Perfil == "Gestor Central Ateste")
+            .OrderBy(u => u.Nome)
+            .ToListAsync();
+    }
+
+    private void AbrirModalEdicao(CentroCusto cc)
+    {
+        ccEditando = cc;
+        nomeEdicao = cc.Nome;
+        
+        var titular = cc.Usuarios.FirstOrDefault(u => u.Perfil == "Gestor Titular");
+        var substituto = cc.Usuarios.FirstOrDefault(u => u.Perfil == "Gestor Substituto");
+
+        titularIdEdicao = titular?.Id ?? 0;
+        substitutoIdEdicao = substituto?.Id ?? 0;
+
+        isModalAberto = true;
+    }
+
+    private void InverterGestores()
+    {
+        var temp = titularIdEdicao;
+        titularIdEdicao = substitutoIdEdicao;
+        substitutoIdEdicao = temp;
+    }
+
+    private void FecharModal()
+    {
+        if (salvando) return;
+        isModalAberto = false;
+        ccEditando = null;
+    }
+
+    private async Task SalvarEdicao()
+    {
+        if (ccEditando == null) return;
+        
+        // Evita titular e substituto sendo a mesma pessoa (se não for "Nenhum")
+        if (titularIdEdicao != 0 && titularIdEdicao == substitutoIdEdicao)
+        {
+            return; // Idealmente exibir erro na UI
+        }
+
+        salvando = true;
+        StateHasChanged();
+
+        try
+        {
+            // 1. Atualizar o Nome do Centro de Custo
+            var ccDb = await Db.CentrosCusto.Include(c => c.Usuarios).FirstOrDefaultAsync(c => c.Id == ccEditando.Id);
+            if (ccDb == null) return;
+
+            ccDb.Nome = nomeEdicao;
+
+            // 2. Resolver Gestores Antigos (Desvincular quem saiu)
+            var antigosGestores = ccDb.Usuarios.ToList();
+            foreach (var antigo in antigosGestores)
+            {
+                if (antigo.Id != titularIdEdicao && antigo.Id != substitutoIdEdicao)
+                {
+                    antigo.CentroCustoId = null;
+                    antigo.Perfil = "Gestor Sem Setor";
+                }
+            }
+
+            // 3. Atualizar/Vincular Novos Gestores
+            if (titularIdEdicao != 0)
+            {
+                var titular = await Db.Usuarios.FindAsync(titularIdEdicao);
+                if (titular != null)
+                {
+                    titular.CentroCustoId = ccDb.Id;
+                    titular.Perfil = "Gestor Titular";
+                }
+            }
+
+            if (substitutoIdEdicao != 0)
+            {
+                var substituto = await Db.Usuarios.FindAsync(substitutoIdEdicao);
+                if (substituto != null)
+                {
+                    substituto.CentroCustoId = ccDb.Id;
+                    substituto.Perfil = "Gestor Substituto";
+                }
+            }
+
+            await Db.SaveChangesAsync();
+            
+            // Recarrega os dados para a tabela
+            await CarregarDados();
+            await CarregarUsuariosGestores();
+            
+            FecharModal();
+        }
+        finally
+        {
+            salvando = false;
+            StateHasChanged();
+        }
+    }
+}

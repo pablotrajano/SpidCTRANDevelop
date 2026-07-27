@@ -123,10 +123,7 @@ else
                     </InputSelect>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Nova senha (deixe em branco para manter a atual)</label>
-                    <InputText @bind-Value="senha" type="password" class="form-control" placeholder="••••••••" />
-                </div>
+
 
                 <div class="mb-3 d-flex justify-content-between align-items-center">
                     <div class="form-check">
@@ -136,19 +133,111 @@ else
                     </div>
                 </div>
 
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary" disabled="@salvando">
+                <div class="d-flex gap-2 align-items-center">
+                    <button type="submit" class="btn btn-primary d-flex align-items-center justify-content-center" style="height: 38px;" disabled="@salvando">
                         @if (salvando)
                         {
                             <span class="spinner-border spinner-border-sm me-2"></span>
                         }
                         Salvar Alterações
                     </button>
-                    <a href="/" class="btn btn-outline-secondary">Cancelar</a>
+                    <a href="/" class="btn btn-danger d-flex align-items-center justify-content-center" style="height: 38px;">Cancelar</a>
+                    
+                    <button type="button" class="btn btn-link text-decoration-none ms-auto d-flex align-items-center p-0" @onclick="AbrirModalSenha">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="me-1" viewBox="0 0 16 16">
+                            <path d="M3.5 11.5a3.5 3.5 0 1 1 3.163-5H14L15.5 8 14 9.5l-1-1-1 1-1-1-1 1-1-1-1 1H6.663a3.5 3.5 0 0 1-3.163 2zM2.5 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
+                        </svg>
+                        Alterar Senha
+                    </button>
                 </div>
             </EditForm>
         </div>
     </div>
+
+    @if (mostrarModalSenha)
+    {
+        <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">Alterar Senha</h5>
+                        <button type="button" class="btn-close btn-close-white" @onclick="FecharModalSenha"></button>
+                    </div>
+                    <div class="modal-body">
+                        @if (!string.IsNullOrEmpty(erroSenha))
+                        {
+                            <div class="alert alert-danger mb-3">@erroSenha</div>
+                        }
+                        @if (!string.IsNullOrEmpty(sucessoSenha))
+                        {
+                            <div class="alert alert-success mb-3">@sucessoSenha</div>
+                        }
+
+                        <div class="mb-3">
+                            <label class="form-label">Nova Senha</label>
+                            <div class="input-group">
+                                <input type="@(mostrarNovaSenha ? "text" : "password")" @bind="novaSenha" class="form-control" placeholder="Digite sua nova senha" />
+                                <button class="btn btn-outline-secondary d-flex align-items-center justify-content-center" type="button" @onclick="() => mostrarNovaSenha = !mostrarNovaSenha">
+                                    @if (mostrarNovaSenha)
+                                    {
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7 7 0 0 0-2.79.588l.77.771A6 6 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755q-.247.248-.517.486z"/>
+                                            <path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829"/>
+                                            <path d="M3.35 5.47q-.27.24-.518.487A13 13 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7 7 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12z"/>
+                                        </svg>
+                                    }
+                                    else
+                                    {
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
+                                            <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
+                                        </svg>
+                                    }
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Confirme sua Senha</label>
+                            <div class="input-group">
+                                <input type="@(mostrarConfirmaSenha ? "text" : "password")" @bind="confirmaSenha" class="form-control" placeholder="Confirme sua nova senha" />
+                                <button class="btn btn-outline-secondary d-flex align-items-center justify-content-center" type="button" @onclick="() => mostrarConfirmaSenha = !mostrarConfirmaSenha">
+                                    @if (mostrarConfirmaSenha)
+                                    {
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7 7 0 0 0-2.79.588l.77.771A6 6 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755q-.247.248-.517.486z"/>
+                                            <path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829"/>
+                                            <path d="M3.35 5.47q-.27.24-.518.487A13 13 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7 7 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12z"/>
+                                        </svg>
+                                    }
+                                    else
+                                    {
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
+                                            <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
+                                        </svg>
+                                    }
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer flex-column border-top-0 pt-0 pb-4 px-4">
+                        <button type="button" class="btn btn-primary w-100 mb-3" @onclick="SalvarNovaSenha" disabled="@salvandoSenha">
+                            @if (salvandoSenha)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            Salvar Nova Senha
+                        </button>
+                        
+                        <div class="text-center w-100">
+                            <button type="button" class="btn btn-danger" style="padding: 0.4rem 1.5rem; font-size: 0.85em; font-weight: normal;" @onclick="FecharModalSenha">Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 }
 
 @code {
@@ -166,7 +255,6 @@ else
     private string grupoPerfil = "";
     private string subtipoPerfil = "";
     private int centroCustoId;
-    private string senha = "";
     private bool ativo = true;
 
     private List<CentroCusto>? centrosCusto;
@@ -235,6 +323,83 @@ else
         if (grupoPerfil == "Gestor Central" && subtipoPerfil == "Padrão")
         {
             centroCustoId = 0;
+        }
+    }
+
+    // Estado da Modal de Senha
+    private bool mostrarModalSenha = false;
+    private string novaSenha = "";
+    private string confirmaSenha = "";
+    private bool mostrarNovaSenha = false;
+    private bool mostrarConfirmaSenha = false;
+    private string? erroSenha;
+    private string? sucessoSenha;
+    private bool salvandoSenha = false;
+
+    private void AbrirModalSenha()
+    {
+        novaSenha = "";
+        confirmaSenha = "";
+        mostrarNovaSenha = false;
+        mostrarConfirmaSenha = false;
+        erroSenha = null;
+        sucessoSenha = null;
+        mostrarModalSenha = true;
+    }
+
+    private void FecharModalSenha()
+    {
+        mostrarModalSenha = false;
+    }
+
+    private async Task SalvarNovaSenha()
+    {
+        erroSenha = null;
+        sucessoSenha = null;
+        salvandoSenha = true;
+
+        try
+        {
+            if (string.IsNullOrWhiteSpace(novaSenha))
+            {
+                erroSenha = "A nova senha é obrigatória.";
+                return;
+            }
+
+            if (novaSenha.Length < 8)
+            {
+                erroSenha = "A senha deve ter no mínimo 8 caracteres.";
+                return;
+            }
+
+            if (novaSenha != confirmaSenha)
+            {
+                erroSenha = "As senhas não conferem.";
+                return;
+            }
+
+            if (usuarioEditando is not null)
+            {
+                usuarioEditando.SenhaHash = UserSession.HashSenha(usuarioEditando, novaSenha);
+                await Db.SaveChangesAsync();
+                
+                // Atualizar referência local do usuário logado
+                UserSession.UsuarioLogado!.SenhaHash = usuarioEditando.SenhaHash;
+
+                sucessoSenha = "Senha atualizada com sucesso!";
+                
+                // Fecha a modal após um tempinho
+                await Task.Delay(1500);
+                FecharModalSenha();
+            }
+        }
+        catch (Exception ex)
+        {
+            erroSenha = $"Erro ao salvar: {ex.Message}";
+        }
+        finally
+        {
+            salvandoSenha = false;
         }
     }
 
@@ -319,11 +484,6 @@ else
                 if (!bloquearPerfil)
                 {
                     usuarioEditando.Perfil = perfilFinal;
-                }
-
-                if (!string.IsNullOrWhiteSpace(senha))
-                {
-                    usuarioEditando.SenhaHash = UserSession.HashSenha(usuarioEditando, senha);
                 }
 
                 await Db.SaveChangesAsync();

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Spid.Components;
 using Spid.Data;
 using Spid.Services;
@@ -26,12 +27,17 @@ var connectionString = Environment.GetEnvironmentVariable("SPID_CONNECTION_STRIN
 
 // DbContext principal
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(connectionString));
+{
+    options.UseSqlServer(connectionString);
+    options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
+});
 
 // Factory para contextos curtos
 builder.Services.AddDbContextFactory<AppDbContext>(options =>
-    options.UseSqlServer(connectionString),
-    ServiceLifetime.Scoped);
+{
+    options.UseSqlServer(connectionString);
+    options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
+}, ServiceLifetime.Scoped);
 
 // Componentes Razor / Blazor Server
 builder.Services.AddRazorComponents()
@@ -456,7 +462,7 @@ app.MapPost("/do-primeiro-acesso", async (HttpContext ctx, AppDbContext db) =>
 {
     var form = await ctx.Request.ReadFormAsync();
     var ponto = form["ponto"].ToString().Trim();
-    
+
     if (ponto.StartsWith("p_", StringComparison.OrdinalIgnoreCase))
     {
         ponto = ponto.ToLower();
@@ -472,7 +478,7 @@ app.MapPost("/do-primeiro-acesso", async (HttpContext ctx, AppDbContext db) =>
     {
         var possivelPonto = "p_" + ponto;
         bool esqueceuP = ponto.Length > 4 || await db.Usuarios.AnyAsync(u => u.Ponto.ToLower() == possivelPonto.ToLower() && u.Ativo);
-        
+
         if (esqueceuP)
         {
             return Results.Redirect("/login?erro=faltap");
@@ -509,7 +515,7 @@ app.MapPost("/do-login", async (HttpContext ctx, AppDbContext db) =>
 {
     var form = await ctx.Request.ReadFormAsync();
     var ponto = form["ponto"].ToString().Trim();
-    
+
     if (ponto.StartsWith("p_", StringComparison.OrdinalIgnoreCase))
     {
         ponto = ponto.ToLower();
@@ -529,7 +535,7 @@ app.MapPost("/do-login", async (HttpContext ctx, AppDbContext db) =>
         {
             var possivelPonto = "p_" + ponto;
             bool esqueceuP = ponto.Length > 4 || await db.Usuarios.AnyAsync(u => u.Ponto.ToLower() == possivelPonto.ToLower() && u.Ativo);
-            
+
             if (esqueceuP)
             {
                 return Results.Redirect("/login?erro=faltap");

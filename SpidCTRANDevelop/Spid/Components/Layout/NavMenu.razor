@@ -58,13 +58,18 @@
             @if (isAdmin)
             {
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="usuarios">
-                        <Icon Name="users-gear" Size="16" Class="nav-icon" /> Gerenciar Usuários
+                    <NavLink class="nav-link" href="status-conferencias">
+                        <Icon Name="clipboard-check" Size="16" Class="nav-icon" /> Status Conferência
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="status-conferencias">
-                        <Icon Name="clipboard-check" Size="16" Class="nav-icon" /> Status Conferências
+                    <NavLink class="nav-link" href="usuarios">
+                        <Icon Name="users-gear" Size="16" Class="nav-icon" /> Usuários
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="centros-custo">
+                        <Icon Name="chart-pie" Size="16" Class="nav-icon" /> Centros de Custo
                     </NavLink>
                 </div>
             }
@@ -150,7 +155,7 @@
         {
             isAtesteOpen = true;
         }
-        else if (relativeUrl == "importar-viagens" || relativeUrl == "usuarios" || relativeUrl == "status-conferencias" || relativeUrl == "minhas-informacoes")
+        else if (relativeUrl == "importar-viagens" || relativeUrl == "usuarios" || relativeUrl == "status-conferencias" || relativeUrl == "centros-custo" || relativeUrl == "minhas-informacoes")
         {
             isGestaoOpen = true;
         }

@@ -20,4 +20,8 @@ public class ConferenciaMensal
     public Usuario Usuario { get; set; } = null!;
 
     public DateTime DataConfirmacao { get; set; }
+
+    public int QtdViagensOk { get; set; }
+    public int QtdViagensContestadas { get; set; }
+    public int QtdViagensOutroGestor { get; set; }
 }

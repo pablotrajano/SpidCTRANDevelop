@@ -438,3 +438,14 @@ h1:focus {
     --icon-primary: #8f98a8;
     --icon-secondary: #c8d0dc;
 }
+
+.btn-outline-purple {
+    color: #6f42c1;
+    border-color: #6f42c1;
+}
+.btn-outline-purple:hover {
+    color: #fff;
+    background-color: #6f42c1;
+    border-color: #6f42c1;
+}
+

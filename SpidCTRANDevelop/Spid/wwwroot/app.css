@@ -34,7 +34,6 @@ a, .btn-link {
     transition: transform .16s ease, box-shadow .16s ease, background .16s ease, border-color .16s ease, color .16s ease;
 }
 .btn:hover:not(:disabled):not(.disabled) {
-    transform: translateY(-1px);
     box-shadow: 0 5px 14px rgba(26, 35, 64, .24);
 }
 .btn:active:not(:disabled):not(.disabled) {
@@ -70,7 +69,7 @@ a, .btn-link {
 .btn-primary:hover,
 .btn-primary:focus {
     color: #fff;
-    background: linear-gradient(135deg, #1766ce, #104a96);
+    background: linear-gradient(135deg, #4285f4, #1a73e8);
 }
 .btn-success {
     color: #fff;
@@ -80,7 +79,13 @@ a, .btn-link {
 .btn-success:hover,
 .btn-success:focus {
     color: #fff;
-    background: linear-gradient(135deg, #187b35, #115826);
+    background: linear-gradient(135deg, #28a745, #1e8e3e);
+}
+
+.btn-success .fa-icon {
+    --icon-primary: #ffffff;
+    --icon-secondary: #a7f3d0;
+    --icon-secondary-opacity: 0.8;
 }
 .btn-danger {
     color: #fff;
@@ -90,7 +95,13 @@ a, .btn-link {
 .btn-danger:hover,
 .btn-danger:focus {
     color: #fff;
-    background: linear-gradient(135deg, #ad1f1c, #851512);
+    background: linear-gradient(135deg, #dc3545, #c5221f);
+}
+
+.btn-danger .fa-icon {
+    --icon-primary: #ffffff;
+    --icon-secondary: #fca5a5;
+    --icon-secondary-opacity: 0.8;
 }
 .btn-secondary {
     color: #fff;
@@ -100,7 +111,12 @@ a, .btn-link {
 .btn-secondary:hover,
 .btn-secondary:focus {
     color: #fff;
-    background: linear-gradient(135deg, #3f4756, #2f3744);
+    background: linear-gradient(135deg, #6b7280, #4b5565);
+}
+
+.btn-secondary .fa-icon {
+    --icon-primary: #fff;
+    --icon-secondary: #c8d0dc;
 }
 .btn-warning {
     color: #2a1b00;
@@ -110,11 +126,13 @@ a, .btn-link {
 .btn-warning:hover,
 .btn-warning:focus {
     color: #211400;
-    background: linear-gradient(135deg, #ffbd32, var(--spid-warning-dark));
+    background: linear-gradient(135deg, #ffda6a, #ffc857);
 }
 .btn-outline-primary,
 .btn-outline-success,
 .btn-outline-danger,
+.btn-outline-warning,
+.btn-outline-purple,
 .btn-outline-secondary {
     background: #fff;
     border-width: 1px;
@@ -250,6 +268,10 @@ h1:focus {
     background: #eef2f7;
     box-shadow: none;
     cursor: not-allowed;
+}
+.btn-historico .fa-icon {
+    --icon-primary: transparent;
+    --icon-secondary: currentColor;
 }
 .page-link {
     min-width: 34px;
@@ -439,13 +461,137 @@ h1:focus {
     --icon-secondary: #c8d0dc;
 }
 
-.btn-outline-purple {
-    color: #6f42c1;
-    border-color: #6f42c1;
+/* Tabela com Cabeçalho Roxo */
+.table-purple th {
+    background: linear-gradient(135deg, #8554de, #6f42c1) !important;
+    color: #fff !important;
+    border-bottom: none;
 }
-.btn-outline-purple:hover {
-    color: #fff;
-    background-color: #6f42c1;
-    border-color: #6f42c1;
+.table-purple th:first-child {
+    border-top-left-radius: 8px;
+}
+.table-purple th:last-child {
+    border-top-right-radius: 8px;
 }
 
+.btn-outline-purple {
+    color: #6f42c1;
+    border-color: rgba(111, 66, 193, .45);
+}
+.btn-outline-purple:hover,
+.btn-outline-purple:focus {
+    color: #fff;
+    background: linear-gradient(135deg, #8554de, #6f42c1);
+    border-color: transparent;
+}
+.btn-outline-warning {
+    color: #d97706;
+    border-color: rgba(217, 119, 6, .45);
+}
+.btn-outline-warning:hover,
+.btn-outline-warning:focus {
+    color: #fff !important;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border-color: transparent;
+}
+
+
+/* Icones Duotone Coloridos */
+.fa-icon {
+    /* Cor secundária do icone (opaca) - pode ser sobrescrita localmente */
+    --icon-secondary: var(--spid-primary, currentColor);
+    --icon-secondary-opacity: 0.35;
+    /* Cor principal do icone (solida) - pode ser sobrescrita localmente */
+    --icon-primary: var(--spid-primary-dark, currentColor);
+}
+
+.fa-icon path[opacity] {
+    fill: var(--icon-secondary);
+    opacity: var(--icon-secondary-opacity);
+}
+
+.fa-icon path:not([opacity]) {
+    fill: var(--icon-primary);
+}
+
+/* Garante que os ícones em botões outline assumam a cor do texto do botão */
+.btn-outline-primary .fa-icon,
+.btn-outline-success .fa-icon,
+.btn-outline-danger .fa-icon,
+.btn-outline-warning .fa-icon,
+.btn-outline-purple .fa-icon,
+.btn-outline-secondary .fa-icon,
+.badge .fa-icon {
+    --icon-primary: currentColor;
+    --icon-secondary: currentColor;
+}
+
+/* NavMenu Icon Colors - Deixando os ícones do menu muito mais vibrantes */
+.nav-item .nav-icon {
+    --icon-primary: #e8eaed; /* Branco/cinza claro para destacar no fundo escuro */
+    --icon-secondary: #00bcd4; /* Azul ciano vivo */
+    --icon-secondary-opacity: 0.9;
+}
+.nav-category .category-icon {
+    --icon-primary: #ffffff;
+    --icon-secondary: #ffb74d; /* Laranja suave */
+    --icon-secondary-opacity: 0.9;
+}
+
+/* NavMenu ativa com fundo leve e degradê */
+.nav-item .nav-link {
+    white-space: nowrap;
+}
+.nav-item .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-right: 4px solid #8ab4f8; /* Azul claro legível */
+    color: #8ab4f8 !important; 
+    font-weight: 600;
+    white-space: nowrap;
+}
+.nav-item .nav-link.active .nav-icon {
+    --icon-primary: #ffffff;
+    --icon-secondary: #fbc02d; /* Destaque amarelo/dourado na aba ativa */
+    --icon-secondary-opacity: 1;
+}
+
+/* Icones nos Botoes da Tabela */
+.btn-status-icon {
+    min-width: 64px;
+}
+.btn-status-icon .fa-icon {
+    width: 14px;
+    text-align: center;
+}
+.btn-status-icon span {
+    width: 24px;
+    text-align: right;
+}
+
+.status-badge-fixed {
+    min-width: 95px;
+    display: inline-block;
+    text-align: center;
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+/* Limpo o efeito cutout manual para usar apenas outline nativo */
+
+.btn-outline-secondary .fa-icon {
+    --icon-primary: var(--spid-secondary-dark);
+    --icon-secondary: var(--spid-secondary-dark);
+    --icon-secondary-opacity: 0.9;
+}
+.btn-outline-secondary:hover .fa-icon {
+    --icon-primary: #fff;
+    --icon-secondary: #fff;
+    --icon-secondary-opacity: 1;
+}
+
+/* Correção para o ícone rotate-left no botão de histórico. 
+   Ele desenha a ponta e a cauda separadas. Colocamos as duas na mesma cor e opacidade para ficar inteiriço. */
+.btn-historico .fa-icon {
+    --icon-primary: currentColor !important;
+    --icon-secondary: currentColor !important;
+    --icon-secondary-opacity: 1 !important;
+}

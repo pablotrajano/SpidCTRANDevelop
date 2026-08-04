@@ -6,9 +6,12 @@
 @inject NavigationManager NavManager
 @implements IDisposable
 
-<div class="top-row ps-3 navbar navbar-dark">
+<div class="top-row ps-3 navbar navbar-dark d-flex align-items-center">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">Spid</a>
+        <a class="navbar-brand d-flex align-items-center gap-2" href="">
+            <img src="spid_web.png" alt="Spid Logo" style="height: 32px; object-fit: contain;" />
+            <span class="fw-bold fs-4">Spid</span>
+        </a>
     </div>
 </div>
 
@@ -20,20 +23,20 @@
         <!-- CATEGORIA: ATESTE -->
         <div class="nav-category" @onclick="ToggleAteste">
             <span class="category-title">Ateste</span>
-            <Icon Name="@(isAtesteOpen ? "chevron-down" : "chevron-up")" Size="12" Class="category-icon" />
+            <Icon Name="@(isAtesteOpen ? "chevron-down" : "chevron-up")" Size="16" Class="category-icon" />
         </div>
 
         <div class="nav-subcategory @(isAtesteOpen ? "expanded" : "collapsed")">
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                    <Icon Name="house" Size="16" Class="nav-icon" /> Dashboard
+                    <Icon Name="house" Size="22" Class="nav-icon" /> Dashboard
                 </NavLink>
             </div>
             @if (podeAnalisar)
             {
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="atestar-viagens">
-                        <Icon Name="magnifying-glass-chart" Size="16" Class="nav-icon" /> Atestar Viagens
+                        <Icon Name="magnifying-glass-chart" Size="22" Class="nav-icon" /> Atestar Viagens
                     </NavLink>
                 </div>
             }
@@ -42,7 +45,7 @@
         <!-- CATEGORIA: GESTÃO -->
         <div class="nav-category mt-2" @onclick="ToggleGestao">
             <span class="category-title">Gestão</span>
-            <Icon Name="@(isGestaoOpen ? "chevron-down" : "chevron-up")" Size="12" Class="category-icon" />
+            <Icon Name="@(isGestaoOpen ? "chevron-down" : "chevron-up")" Size="16" Class="category-icon" />
         </div>
 
         <div class="nav-subcategory @(isGestaoOpen ? "expanded" : "collapsed")">
@@ -50,7 +53,7 @@
             {
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="importar-viagens">
-                        <Icon Name="file-import" Size="16" Class="nav-icon" /> Importar Viagens
+                        <Icon Name="file-import" Size="22" Class="nav-icon" /> Importar Viagens
                     </NavLink>
                 </div>
             }
@@ -59,31 +62,31 @@
             {
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="status-conferencias">
-                        <Icon Name="clipboard-check" Size="16" Class="nav-icon" /> Status Conferência
+                        <Icon Name="clipboard-check" Size="22" Class="nav-icon" /> Status Conferência
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="usuarios">
-                        <Icon Name="users-gear" Size="16" Class="nav-icon" /> Usuários
+                        <Icon Name="users-gear" Size="22" Class="nav-icon" /> Usuários
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="centros-custo">
-                        <Icon Name="chart-pie" Size="16" Class="nav-icon" /> Centros de Custo
+                        <Icon Name="chart-pie" Size="22" Class="nav-icon" /> Centros de Custo
                     </NavLink>
                 </div>
             }
 
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="minhas-informacoes">
-                    <Icon Name="user-pen" Size="16" Class="nav-icon" /> Minhas Informações
+                    <Icon Name="user-pen" Size="22" Class="nav-icon" /> Minhas Informações
                 </NavLink>
             </div>
         </div>
 
         <div class="nav-category mt-4 mb-4" @onclick="AbrirModalSuporte">
             <span class="category-title">CONTATO SUPORTE</span>
-            <Icon Name="headset" Size="14" Class="category-icon" />
+            <Icon Name="user-headset" Size="26" Class="category-icon" />
         </div>
     </nav>
 </div>

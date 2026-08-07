@@ -619,9 +619,10 @@ else
                                                                         <th class="text-end">V. Cotado</th>
                                                                         <th class="text-end">V. Final</th>
                                                                         <th>Motivo da Viagem</th>
+                                                                        <th>Status Parceiro</th>
                                                                         @if (detalheStatus == "Todas" || detalheStatus == "OK")
                                                                         {
-                                                                            <th>Status</th>
+                                                                            <th>Status Ateste</th>
                                                                         }
                                                                         @if (detalheStatus == "Contestada" || detalheStatus == "Todas")
                                                                         {
@@ -641,6 +642,16 @@ else
                                                                             <td class="text-end">R$ @v.ValorCotado.ToString("N2")</td>
                                                                             <td class="text-end">R$ @v.ValorFinal.ToString("N2")</td>
                                                                             <td>@v.Motivo</td>
+                                                                            <td>
+                                                                                @if (v.StatusOrigem.Contains("Cancelada", StringComparison.OrdinalIgnoreCase))
+                                                                                {
+                                                                                    <span class="badge bg-danger">@v.StatusOrigem</span>
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    <span class="badge bg-secondary">@v.StatusOrigem</span>
+                                                                                }
+                                                                            </td>
                                                                             @if (detalheStatus == "Todas" || detalheStatus == "OK")
                                                                             {
                                                                                 <td>

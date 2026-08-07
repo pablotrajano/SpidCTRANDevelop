@@ -309,6 +309,7 @@ else
                         <thead class="table-purple">
                             <tr class="align-middle">
                                 <th class="text-center border-end border-dark" style="width: 50px;">#</th>
+                                <th class="text-center">Solicitação da Viagem</th>
                                 <th class="text-center" role="button" @onclick="AlternarOrdemData" style="cursor:pointer;">
                                     Início da Viagem @(ordenarDataAsc ? "▲" : "▼")
                                 </th>
@@ -319,8 +320,8 @@ else
                                 <th class="text-center">Motivo da Viagem</th>
                                 <th class="text-center">Parceiro</th>
                                 <th class="text-center">Valor Final</th>
-                                <th class="text-center">Status</th>
-                                <th class="text-center">Ateste da viagem</th>
+                                <th class="text-center">Status (Parceiro / Ateste)</th>
+                                <th class="text-center">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -333,11 +334,29 @@ else
                                     <td class="text-center text-muted fw-bold border-end border-dark">@(rowIndex++)</td>
                                     <td class="text-center">
                                         @v.DataViagem.ToString("dd/MM/yyyy")<br />
-                                        @v.HoraInicio.ToString("HH:mm")
+                                        @(v.HoraSolicitacao.HasValue ? v.HoraSolicitacao.Value.ToString("HH:mm") : "Sem Registro")
                                     </td>
                                     <td class="text-center">
-                                        @CalcDataFim(v).ToString("dd/MM/yyyy")<br />
-                                        @v.HoraFim.ToString("HH:mm")
+                                        @if (v.StatusOrigem.Contains("Cancelada com Taxa", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="text-muted fst-italic small">Sem Registro</span>
+                                        }
+                                        else
+                                        {
+                                            @v.DataViagem.ToString("dd/MM/yyyy")<br />
+                                            @v.HoraInicio.ToString("HH:mm")
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (v.StatusOrigem.Contains("Cancelada com Taxa", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="text-muted fst-italic small">Sem Registro</span>
+                                        }
+                                        else
+                                        {
+                                            @CalcDataFim(v).ToString("dd/MM/yyyy")<br />
+                                            @v.HoraFim.ToString("HH:mm")
+                                        }
                                     </td>
                                     <td class="text-center">@v.Colaborador.Nome</td>
                                     <td class="text-center">@v.Origem</td>
@@ -346,6 +365,14 @@ else
                                     <td class="text-center">@v.Parceiro.Nome</td>
                                     <td class="text-center">R$ @v.ValorFinal.ToString("N2")</td>
                                     <td class="text-center">
+                                        @if (v.StatusOrigem.Contains("Cancelada", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge bg-danger d-block mb-1 mx-auto" style="max-width: 130px; white-space: normal; line-height: 1.2;">@v.StatusOrigem</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary d-block mb-1 mx-auto" style="max-width: 130px; white-space: normal; line-height: 1.2;">@v.StatusOrigem</span>
+                                        }
                                         @switch (v.StatusConferenciaGestor)
                                         {
                                             case "Pendente":

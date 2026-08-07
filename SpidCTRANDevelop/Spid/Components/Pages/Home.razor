@@ -78,7 +78,7 @@ else
 
         <!-- KPI Cards -->
         <div class="row g-3 mb-4">
-            <div class="col-sm-6 col-lg-4">
+            <div class="col-sm-6 col-lg-4 col-xl">
                 <div class="card shadow-sm h-100" style="border: 1px solid rgba(59, 130, 246, 0.4); background: linear-gradient(135deg, #eff6ff, #dbeafe); transition: transform 0.2s;">
                     <div class="card-body py-2 px-3 d-flex align-items-center gap-3">
                         <div class="d-flex align-items-center justify-content-center rounded-circle shadow-sm" style="width: 48px; height: 48px; background-color: #ffffff;">
@@ -86,25 +86,51 @@ else
                         </div>
                         <div class="text-start">
                             <div class="fs-3 fw-bold lh-1" style="color: #2563eb;">@totalCorridas</div>
-                            <small class="fw-bold text-uppercase" style="color: #1d4ed8; font-size: 0.7rem; letter-spacing: 0.05em;">Corridas Realizadas</small>
+                            <small class="fw-bold text-uppercase" style="color: #1d4ed8; font-size: 0.7rem; letter-spacing: 0.05em;">Viagens Registradas</small>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-sm-6 col-lg-4">
+            <div class="col-sm-6 col-lg-4 col-xl">
                 <div class="card shadow-sm h-100" style="border: 1px solid rgba(21, 128, 61, 0.4); background: linear-gradient(135deg, #f0fdf4, #dcfce7); transition: transform 0.2s;">
                     <div class="card-body py-2 px-3 d-flex align-items-center gap-3">
                         <div class="d-flex align-items-center justify-content-center rounded-circle shadow-sm" style="width: 48px; height: 48px; background-color: #ffffff;">
-                            <Icon Name="money-bill" Size="28" style="--icon-primary: #15803d; --icon-secondary: #4ade80; --icon-secondary-opacity: 1;" />
+                            <Icon Name="circle-check" Size="28" style="--icon-primary: #15803d; --icon-secondary: #4ade80; --icon-secondary-opacity: 1;" />
                         </div>
                         <div class="text-start">
-                            <div class="fs-3 fw-bold lh-1" style="color: #16a34a;">R$ @custoTotal.ToString("N2")</div>
-                            <small class="fw-bold text-uppercase" style="color: #15803d; font-size: 0.7rem; letter-spacing: 0.05em;">Custo Total</small>
+                            <div class="fs-3 fw-bold lh-1" style="color: #16a34a;">@totalFinalizadas</div>
+                            <small class="fw-bold text-uppercase" style="color: #15803d; font-size: 0.7rem; letter-spacing: 0.05em;">Finalizadas</small>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-sm-6 col-lg-4">
+            <div class="col-sm-6 col-lg-4 col-xl">
+                <div class="card shadow-sm h-100" style="border: 1px solid rgba(220, 38, 38, 0.4); background: linear-gradient(135deg, #fef2f2, #fee2e2); transition: transform 0.2s;">
+                    <div class="card-body py-2 px-3 d-flex align-items-center gap-3">
+                        <div class="d-flex align-items-center justify-content-center rounded-circle shadow-sm" style="width: 48px; height: 48px; background-color: #ffffff;">
+                            <Icon Name="circle-xmark" Size="28" style="--icon-primary: #b91c1c; --icon-secondary: #f87171; --icon-secondary-opacity: 1;" />
+                        </div>
+                        <div class="text-start">
+                            <div class="fs-3 fw-bold lh-1" style="color: #dc2626;">@totalCanceladas</div>
+                            <small class="fw-bold text-uppercase" style="color: #b91c1c; font-size: 0.7rem; letter-spacing: 0.05em;">Canceladas c/ Taxa</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-6 col-xl">
+                <div class="card shadow-sm h-100" style="border: 1px solid rgba(111, 66, 193, 0.4); background: linear-gradient(135deg, #f3f0ff, #e9e3ff); transition: transform 0.2s;">
+                    <div class="card-body py-2 px-3 d-flex align-items-center gap-3">
+                        <div class="d-flex align-items-center justify-content-center rounded-circle shadow-sm" style="width: 48px; height: 48px; background-color: #ffffff;">
+                            <Icon Name="money-bill" Size="28" style="--icon-primary: #6f42c1; --icon-secondary: #a38cf0; --icon-secondary-opacity: 1;" />
+                        </div>
+                        <div class="text-start">
+                            <div class="fs-3 fw-bold lh-1" style="color: #6f42c1;">R$ @custoTotal.ToString("N2")</div>
+                            <small class="fw-bold text-uppercase" style="color: #5a32a3; font-size: 0.7rem; letter-spacing: 0.05em;">Custo Total</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-6 col-xl">
                 <div class="card shadow-sm h-100" style="border: 1px solid rgba(180, 83, 9, 0.4); background: linear-gradient(135deg, #fffbeb, #fef3c7); transition: transform 0.2s;">
                     <div class="card-body py-2 px-3 d-flex align-items-center gap-3">
                         <div class="d-flex align-items-center justify-content-center rounded-circle shadow-sm" style="width: 48px; height: 48px; background-color: #ffffff;">
@@ -252,6 +278,8 @@ else
 
     // KPIs
     private int totalCorridas;
+    private int totalFinalizadas;
+    private int totalCanceladas;
     private decimal custoTotal;
     private decimal ticketMedio;
 
@@ -345,6 +373,8 @@ else
 
         // KPIs
         totalCorridas = viagens.Count;
+        totalCanceladas = viagens.Count(v => v.StatusOrigem.Contains("Cancelada", StringComparison.OrdinalIgnoreCase));
+        totalFinalizadas = totalCorridas - totalCanceladas;
         custoTotal = viagens.Sum(v => v.ValorFinal);
         ticketMedio = totalCorridas > 0 ? custoTotal / totalCorridas : 0;
 

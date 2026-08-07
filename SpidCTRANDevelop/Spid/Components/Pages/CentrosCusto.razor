@@ -9,17 +9,17 @@
 
 <PageTitle>Centros de Custo — SPID</PageTitle>
 
-<h3 class="mb-4">
-    <Icon Name="chart-pie" Size="24" Class="page-header-icon" /> Centros de Custo
-</h3>
-
-<style>
-    .bg-roxo-spid th, .bg-roxo-spid {
-        background-color: #6f42c1 !important;
-        color: white !important;
-        border-bottom: 2px solid #5a32a3 !important;
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <h3 class="mb-0">
+        <Icon Name="chart-pie" Size="24" Class="page-header-icon" /> Centros de Custo
+    </h3>
+    @if (isAdmin)
+    {
+        <div style="width: 300px;">
+            <input type="text" class="form-control" style="height: 34px; border-radius: 8px; padding-top: 0; padding-bottom: 0;" placeholder="Buscar por setor ou gestor..." @bind="filtroPesquisa" @bind:event="oninput" />
+        </div>
     }
-</style>
+</div>
 
 @if (!isAdmin)
 {
@@ -41,16 +41,12 @@ else
             }
             else
             {
-                <div class="d-flex justify-content-end mb-3">
-                    <div style="width: 300px;">
-                        <input type="text" class="form-control" placeholder="Buscar por setor ou gestor..." @bind="filtroPesquisa" @bind:event="oninput" />
-                    </div>
-                </div>
+
 
                 <div class="table-responsive">
                     <table class="table table-hover align-middle text-center">
-                        <thead class="bg-roxo-spid">
-                            <tr>
+                        <thead class="table-purple">
+                            <tr class="align-middle">
                                 <th class="text-center" style="width: 60px;">#</th>
                                 <th class="text-center">Centro de Custo</th>
                                 <th class="text-center">Gestor Titular</th>

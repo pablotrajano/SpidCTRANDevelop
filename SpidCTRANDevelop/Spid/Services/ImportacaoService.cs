@@ -9,6 +9,7 @@ public class ImportacaoResult
 {
     public int Importadas { get; set; }
     public int Ignoradas { get; set; } // duplicatas
+    public int Atualizadas { get; set; } // antigas atualizadas com novos dados
     public List<string> Erros { get; set; } = new();
 }
 
@@ -68,12 +69,10 @@ public class ImportacaoService
         int colMotivo = GetColIndex(15, "Motivo da Viagem");
         int colIdViagem = GetColIndex(16, "ID Viagem Parceiro");
 
-        // Pegar IDs de viagens já existentes para deduplicação
-        var idsExistentesList = await _db.Viagens
-            .Select(v => v.IdViagemParceiro)
-            .ToListAsync();
-        
-        var idsExistentes = new HashSet<string>(idsExistentesList, StringComparer.OrdinalIgnoreCase);
+        // Pegar IDs de viagens já existentes para deduplicação e saber se possuem HoraSolicitacao
+        var viagensExistentesInfo = await _db.Viagens
+            .Select(v => new { v.IdViagemParceiro, TemHora = v.HoraSolicitacao != null })
+            .ToDictionaryAsync(v => v.IdViagemParceiro, v => v.TemHora, StringComparer.OrdinalIgnoreCase);
 
         // Cache de entidades para evitar consultas repetidas
         var centrosCustoCache = await _db.CentrosCusto.ToDictionaryAsync(s => s.Nome);
@@ -98,7 +97,7 @@ public class ImportacaoService
                 try
                 {
                     var idViagemParceiro = ws.Cell(row, colIdViagem).GetString().Trim();
-                    if (string.IsNullOrWhiteSpace(idViagemParceiro) || idsExistentes.Contains(idViagemParceiro))
+                    if (string.IsNullOrWhiteSpace(idViagemParceiro) || viagensExistentesInfo.ContainsKey(idViagemParceiro))
                         continue;
 
                     var centroCusto = ws.Cell(row, colCentroCusto).GetString().Trim();
@@ -172,9 +171,36 @@ public class ImportacaoService
                 {
                     var idViagemParceiro = ws.Cell(row, colIdViagem).GetString().Trim();
 
-                    if (string.IsNullOrWhiteSpace(idViagemParceiro) || idsExistentes.Contains(idViagemParceiro))
+                    if (string.IsNullOrWhiteSpace(idViagemParceiro))
                     {
-                        result.Ignoradas++;
+                        continue;
+                    }
+
+                    if (viagensExistentesInfo.TryGetValue(idViagemParceiro, out bool temHoraSolicitacao))
+                    {
+                        IXLCell? horaCell = colHoraSolicitacao != -1 ? ws.Cell(row, colHoraSolicitacao) : null;
+                        if (!temHoraSolicitacao && horaCell != null && !string.IsNullOrWhiteSpace(horaCell.GetString()))
+                        {
+                            var viagemExistente = await _db.Viagens.FirstOrDefaultAsync(v => v.IdViagemParceiro == idViagemParceiro);
+                            if (viagemExistente != null)
+                            {
+                                viagemExistente.HoraSolicitacao = ParseTimeOnlySafe(horaCell);
+                                _db.Viagens.Update(viagemExistente);
+                                result.Atualizadas++;
+                                pendingCount++;
+                                viagensExistentesInfo[idViagemParceiro] = true;
+                            }
+                        }
+                        else
+                        {
+                            result.Ignoradas++;
+                        }
+
+                        if (pendingCount >= batchSize)
+                        {
+                            await _db.SaveChangesAsync();
+                            pendingCount = 0;
+                        }
                         continue;
                     }
 
@@ -237,7 +263,7 @@ public class ImportacaoService
                     };
 
                     _db.Viagens.Add(viagem);
-                    idsExistentes.Add(idViagemParceiro);
+                    viagensExistentesInfo[idViagemParceiro] = viagem.HoraSolicitacao.HasValue;
                     result.Importadas++;
                     pendingCount++;
 

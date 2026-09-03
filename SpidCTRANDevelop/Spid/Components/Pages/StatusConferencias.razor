@@ -232,9 +232,9 @@ else
                         <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5); z-index: 1050;">
                             <div class="modal-dialog modal-dialog-centered">
                                 <div class="modal-content">
-                                    <div class="modal-header">
+                                    <div class="modal-header bg-danger text-white">
                                         <h5 class="modal-title">Confirmar Reversão</h5>
-                                        <button type="button" class="btn-close" @onclick="FecharModalReverter"></button>
+                                        <button type="button" class="btn-close btn-close-white" @onclick="FecharModalReverter"></button>
                                     </div>
                                     <div class="modal-body">
                                         <p>Tem certeza que deseja reverter a última ação realizada neste mês?</p>
@@ -573,12 +573,35 @@ else
                                 {
                                     <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
                                         <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
+                                            @{
+                                                var borderColorClass = detalheStatus switch {
+                                                    "OK" => "border-success",
+                                                    "Contestada" => "border-danger",
+                                                    "Pendente" => "border-warning",
+                                                    "Outro Gestor" => "border-secondary",
+                                                    "Todas" => "border-primary",
+                                                    _ => ""
+                                                };
+                                                var borderColorStyle = detalheStatus == "Considerado" ? "border-color: #6f42c1 !important;" : "";
+
+                                                var headerBgClass = detalheStatus switch {
+                                                    "OK" => "bg-success text-white",
+                                                    "Contestada" => "bg-danger text-white",
+                                                    "Pendente" => "bg-warning text-dark",
+                                                    "Outro Gestor" => "bg-secondary text-white",
+                                                    "Todas" => "bg-primary text-white",
+                                                    _ => "text-white"
+                                                };
+                                                var headerBgStyle = detalheStatus == "Considerado" ? "background-color: #6f42c1;" : "";
+                                                var closeBtnClass = detalheStatus == "Pendente" ? "btn-close" : "btn-close btn-close-white";
+                                            }
+                                            <div class="modal-content @borderColorClass" style="@borderColorStyle">
+                                                <div class="modal-header @headerBgClass" style="@headerBgStyle">
                                                     <h5 class="modal-title">
                                                         @(detalheStatus switch
                                                         {
                                                             "OK" => "Viagens Aprovadas",
+                                                            "Considerado" => "Viagens Consideradas",
                                                             "Contestada" => "Viagens Contestadas",
                                                             "Pendente" => "Viagens Pendentes",
                                                             "Outro Gestor" => "Viagens de Outros Gestores",
@@ -586,7 +609,7 @@ else
                                                         })
                                                         — @detalheCentroCustoNome
                                                     </h5>
-                                                    <button type="button" class="btn-close" @onclick="FecharDetalhes"></button>
+                                                    <button type="button" class="@closeBtnClass" @onclick="FecharDetalhes"></button>
                                                 </div>
                                                 <div class="modal-body">
                                                     @if (detalheStatus == "OK")

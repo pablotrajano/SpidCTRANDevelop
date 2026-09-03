@@ -78,6 +78,13 @@ else
                 </div>
             }
 
+            @if (resultado.Atualizadas > 0)
+            {
+                <div class="alert alert-primary">
+                    <Icon Name="clock" Size="16" Class="text-primary me-1" /> <strong>@resultado.Atualizadas</strong> viagem(ns) antiga(s) atualizada(s) com novo horário de solicitação.
+                </div>
+            }
+
             @if (resultado.Erros.Count > 0)
             {
                 <div class="alert alert-danger">

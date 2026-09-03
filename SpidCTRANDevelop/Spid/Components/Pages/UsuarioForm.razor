@@ -91,7 +91,7 @@ else
                     <div class="col-6">
                         <label class="form-label">Tipo de Gestor</label>
                         <InputSelect @bind-Value="subtipoPerfil" class="form-select"
-                                     disabled="@((editando && UserSession.UsuarioLogado!.Perfil == "Gestor Central Padrão") || (grupoPerfil != "Gestor" && grupoPerfil != "Gestor Central"))">
+                                     disabled="@(grupoPerfil != "Gestor" && grupoPerfil != "Gestor Central")">
                             <option value="">Selecione...</option>
                             @if (grupoPerfil == "Gestor")
                             {
@@ -447,10 +447,7 @@ else
                 usuarioEditando.Ponto = ponto;
                 usuarioEditando.Cpf = cpf;
                 
-                if (UserSession.UsuarioLogado!.Perfil != "Gestor Central Padrão")
-                {
-                    usuarioEditando.Perfil = perfilFinal;
-                }
+                usuarioEditando.Perfil = perfilFinal;
 
                 usuarioEditando.CentroCustoId = centroCustoId > 0 ? centroCustoId : null;
                 usuarioEditando.Ativo = ativo;

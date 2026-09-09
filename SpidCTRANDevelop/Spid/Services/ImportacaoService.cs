@@ -22,6 +22,26 @@ public class ImportacaoService
         _db = db;
     }
 
+    // -------------------------------------------------------------------------
+    // ALIASES DE CENTROS DE CUSTO
+    // Mapeamento temporário de nomes errados (vindos da planilha do fornecedor)
+    // para os nomes corretos cadastrados no sistema.
+    // Remover este bloco quando o fornecedor corrigir os nomes na planilha.
+    // -------------------------------------------------------------------------
+    private static readonly Dictionary<string, string> _aliasesCentroCusto =
+        new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["SIELE/COENG/DETEC"] = "SIND/COENG/DETEC",
+        // Adicionar novos aliases aqui se necessário:
+        // ["NOME_ERRADO"] = "NOME_CORRETO",
+    };
+
+    private static string NormalizarNomeCentroCusto(string nome)
+    {
+        return _aliasesCentroCusto.TryGetValue(nome, out var correto) ? correto : nome;
+    }
+    // -------------------------------------------------------------------------
+
     public async Task<ImportacaoResult> ImportarExcelAsync(Stream stream, int usuarioId)
     {
         var result = new ImportacaoResult();
@@ -100,7 +120,8 @@ public class ImportacaoService
                     if (string.IsNullOrWhiteSpace(idViagemParceiro) || viagensExistentesInfo.ContainsKey(idViagemParceiro))
                         continue;
 
-                    var centroCusto = ws.Cell(row, colCentroCusto).GetString().Trim();
+                    var centroCusto = NormalizarNomeCentroCusto(
+                        ws.Cell(row, colCentroCusto).GetString().Trim());
                     var parceiroNome = ws.Cell(row, colParceiro).GetString().Trim();
                     var cpf = ws.Cell(row, colCpf).GetString().Trim();
                     var nomeColab = ws.Cell(row, colNomeColab).GetString().Trim();
@@ -206,7 +227,8 @@ public class ImportacaoService
 
                     var dataCell = ws.Cell(row, colData);
                     var cpf = ws.Cell(row, colCpf).GetString().Trim();
-                    var centroCusto = ws.Cell(row, colCentroCusto).GetString().Trim();
+                    var centroCusto = NormalizarNomeCentroCusto(
+                        ws.Cell(row, colCentroCusto).GetString().Trim());
                     var origem = ws.Cell(row, colOrigem).GetString().Trim();
                     var destino = ws.Cell(row, colDestino).GetString().Trim();
                     var parceiroNome = ws.Cell(row, colParceiro).GetString().Trim();

@@ -21,88 +21,93 @@
 }
 else
 {
-    @if (centrosCustoStatus is not null)
+    @if (centrosCustoStatus is not null)        
     {
         <!-- Card de Encerramento do Mês -->
         <div class="card shadow-sm mb-4 @(mesEncerrado ? "border-danger" : "border-success")">
-            <div class="card-body d-flex align-items-center gap-3 flex-wrap">
-                <div class="d-flex align-items-center gap-2">
+            <div class="card-body d-flex flex-wrap align-items-center justify-content-between p-3">
+                
+                <!-- Coluna 1 (Esquerda): Histórico -->
+                <div class="d-flex align-items-center" style="width: 33.33%; min-width: 320px;">
+                    <div class="pe-3 fw-bold text-secondary text-center" style="line-height: 1.2; font-size: 0.75rem;">
+                        HISTÓRICO
+                    </div>
+                    <div class="vr bg-secondary opacity-25 me-3" style="width: 2px; align-self: stretch;"></div>
+                    <div class="d-grid align-items-center bg-light rounded p-2 px-3 border" style="grid-template-columns: auto 1fr; gap: 4px 12px;">
+                        <span class="text-secondary text-end small fw-bold">Encerramento:</span>
+                            <span class="text-dark small">
+                                @if (encerramentoRegistro?.DataEncerramento is not null)
+                                {
+                                    <span>@encerramentoRegistro.EncerradoPor?.Nome — @encerramentoRegistro.DataEncerramento?.ToString("dd/MM/yyyy HH:mm")</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted fst-italic">Sem Registro</span>
+                                }
+                            </span>
+                            <span class="text-secondary text-end small fw-bold">Abertura:</span>
+                            <span class="text-dark small">
+                                @if (encerramentoRegistro?.DataLiberacao is not null)
+                                {
+                                    <span>@encerramentoRegistro.LiberadoPor?.Nome — @encerramentoRegistro.DataLiberacao?.ToString("dd/MM/yyyy HH:mm")</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted fst-italic">Sem Registro</span>
+                                }
+                            </span>
+                        </div>
+                </div>
+
+                <!-- Coluna 2 (Centro): Status Principal -->
+                <div class="d-flex justify-content-center" style="width: 33.33%; min-width: 250px;">
                     @if (mesEncerrado)
                     {
-                        <span class="badge bg-danger fs-6 d-flex align-items-center gap-1 px-3 py-2">
-                            <Icon Name="lock" Size="14" /> Mês Encerrado
-                        </span>
-                        <button class="btn btn-success btn-sm d-flex align-items-center gap-1" @onclick="AbrirModalLiberar"
-                                disabled="@processandoEncerramento">
-                            @if (processandoEncerramento)
-                            {
-                                <span class="spinner-border spinner-border-sm"></span>
-                            }
-                            <Icon Name="lock-open" Size="14" /> Liberar Mês
+                        <div class="badge d-flex align-items-center justify-content-center gap-3 px-5 py-3 shadow-sm rounded" style="background: linear-gradient(135deg, #ef4444, #b91c1c); font-size: 1.75rem;">
+                            <Icon Name="lock" Size="32" style="--icon-primary: #ffffff; --icon-secondary: #fca5a5; --icon-secondary-opacity: 1;" /> Mês Encerrado
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="badge d-flex align-items-center justify-content-center gap-3 px-5 py-3 shadow-sm rounded" style="background: linear-gradient(135deg, #22c55e, #15803d); font-size: 1.75rem;">
+                            <Icon Name="lock-open" Size="32" style="--icon-primary: #ffffff; --icon-secondary: #86efac; --icon-secondary-opacity: 1;" /> Mês em aberto
+                        </div>
+                    }
+                </div>
+
+                <!-- Coluna 3 (Direita): Ações -->
+                <div class="d-flex flex-column align-items-end gap-2" style="width: 33.33%; min-width: 200px;">
+                    @if (mesEncerrado)
+                    {
+                        <button class="btn btn-outline-success d-flex align-items-center justify-content-start gap-3 shadow-sm fw-bold py-1 ps-4" style="width: 160px; height: 32px; font-size: 0.85rem;" @onclick="AbrirModalLiberar" disabled="@processandoEncerramento">
+                            @if (processandoEncerramento) { <span class="spinner-border spinner-border-sm"></span> }
+                            <Icon Name="lock-open" Size="14" /> <span>Abrir Mês</span>
                         </button>
                     }
                     else
                     {
-                        <span class="badge bg-success fs-6 d-flex align-items-center gap-1 px-3 py-2">
-                            <Icon Name="lock-open" Size="14" /> Mês Liberado
-                        </span>
-                        <button class="btn btn-danger btn-sm d-flex align-items-center gap-1" @onclick="AbrirModalEncerrar"
-                                disabled="@processandoEncerramento">
-                            @if (processandoEncerramento)
-                            {
-                                <span class="spinner-border spinner-border-sm"></span>
-                            }
-                            <Icon Name="lock" Size="14" /> Encerrar Mês
+                        <button class="btn btn-outline-danger d-flex align-items-center justify-content-start gap-3 shadow-sm fw-bold py-1 ps-4" style="width: 160px; height: 32px; font-size: 0.85rem;" @onclick="AbrirModalEncerrar" disabled="@processandoEncerramento">
+                            @if (processandoEncerramento) { <span class="spinner-border spinner-border-sm"></span> }
+                            <Icon Name="lock" Size="14" /> <span>Encerrar Mês</span>
                         </button>
                     }
+                    <button class="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-start gap-3 fw-bold py-1 ps-4" style="width: 160px; height: 32px; font-size: 0.85rem;" @onclick="AbrirModalReverter" disabled="@processandoEncerramento" title="Volta para o status de viagens e conferências do mês anterior">
+                        <Icon Name="rotate-left" Size="14" /> <span>Reverter ação</span>
+                    </button>
                 </div>
-                <div class="vr d-none d-md-block"></div>
-                <div class="d-flex flex-column gap-1 small">
-                    <span>
-                        <strong>Encerramento:</strong>
-                        @if (encerramentoRegistro?.DataEncerramento is not null)
-                        {
-                            <span>@encerramentoRegistro.EncerradoPor?.Nome —
-                                @encerramentoRegistro.DataEncerramento?.ToString("dd/MM/yyyy HH:mm")</span>
-                            }
-                        else
-                            {
-                                <span class="text-muted fst-italic">Sem registro de encerramento</span>
-                            }
-                        </span>
-                        <span>
-                            <strong>Liberação:</strong>
-                            @if (encerramentoRegistro?.DataLiberacao is not null)
-                            {
-                                <span>@encerramentoRegistro.LiberadoPor?.Nome —
-                                    @encerramentoRegistro.DataLiberacao?.ToString("dd/MM/yyyy HH:mm")</span>
-                                }
-                        else
-                                {
-                                    <span class="text-muted fst-italic">Sem registro de liberação</span>
-                                }
-                            </span>
-                        </div>
-                        <div class="ms-auto">
-                            <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
-                                    @onclick="AbrirModalReverter" disabled="@processandoEncerramento"
-                                    title="Volta para o status de viagens e conferências do mês anterior">
-                                <Icon Name="rotate-left" Size="14" /> Reverter ação
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            }
+            </div>
+        </div>
 
-            <!-- Filtro e Resumo -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-body d-flex align-items-center gap-3 flex-wrap">
-                    <!-- Filtros -->
-                    <div class="flex-shrink-0">
-                        <label class="form-label small mb-1">Mês</label>
+        <!-- Filtro e Resumo -->
+        <div class="card shadow-sm mb-4" style="border: 2px solid rgba(111, 66, 193, 0.4);">
+            <div class="card-body d-flex align-items-center gap-4 flex-wrap">
+                <!-- Filtros -->
+                <div class="d-flex align-items-end gap-2">
+                    <div class="d-flex flex-column">
+                        <label class="form-label mb-1 fw-bold">Mês</label>
                         <div class="d-flex align-items-center gap-1">
-                            <button class="filter-btn" @onclick="MesAnterior" disabled="@(mesSelecionado <= 1)">&#9664;</button>
-                            <select class="filter-select" @bind="mesSelecionado" @bind:after="Carregar">
+                            <button class="btn btn-primary p-0 d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; border-radius: 8px;" @onclick="MesAnterior" disabled="@(mesSelecionado <= 1)">&#9664;</button>
+                            <select class="form-select text-center" style="height: 34px; border-radius: 8px; width: 120px; padding-top: 0; padding-bottom: 0;" @bind="mesSelecionado" @bind:after="Carregar">
                                 @for (int m = 1; m <= 12; m++)
                                 {
                                     var mes = m;
@@ -111,57 +116,68 @@ else
                                     </option>
                                 }
                             </select>
-                            <button class="filter-btn" @onclick="MesSeguinte" disabled="@(mesSelecionado >= 12)">&#9654;</button>
+                            <button class="btn btn-primary p-0 d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; border-radius: 8px;" @onclick="MesSeguinte" disabled="@(mesSelecionado >= 12)">&#9654;</button>
                         </div>
                     </div>
-                    <div class="flex-shrink-0 d-flex flex-column">
-                        <label class="form-label small mb-1">Ano</label>
-                        <select class="filter-select" @bind="anoSelecionado" @bind:after="Carregar">
+                    <div class="d-flex flex-column">
+                        <label class="form-label mb-1 fw-bold">Ano</label>
+                        <select class="form-select text-center" style="height: 34px; border-radius: 8px; width: 90px; padding-top: 0; padding-bottom: 0;" @bind="anoSelecionado" @bind:after="Carregar">
                             @foreach (var a in anosDisponiveis)
                             {
                                 <option value="@a">@a</option>
                             }
                         </select>
                     </div>
-                    <!-- Novo Campo Pesquisar -->
-                    <div class="flex-shrink-0 d-flex flex-column">
-                        <label class="form-label small mb-1">Pesquisar</label>
-                        <input type="text" class="form-control form-control-sm" style="width: 200px;" placeholder="Buscar..."
-                               @bind="filtroPesquisa" @bind:after="OrdenarStatus" />
+                    <div class="d-flex flex-column">
+                        <label class="form-label mb-1 fw-bold">Pesquisar</label>
+                        <input type="text" class="form-control" style="height: 34px; border-radius: 8px; width: 190px; padding-top: 0; padding-bottom: 0;" placeholder="Buscar..." @bind="filtroPesquisa" @bind:after="OrdenarStatus" />
                     </div>
-                    <!-- Cards de resumo na mesma linha -->
-                    @if (centrosCustoStatus is not null && centrosCustoStatus.Count > 0)
-                    {
-                        <div class="flex-grow-1 d-flex gap-3">
-                            <div class="flex-fill">
-                                <div class="card text-center border-success h-100">
-                                    <div class="card-body py-2">
-                                        <div class="fs-3 fw-bold text-success">@centrosCustoStatus.Count(s => s.Confirmado &&
-                                                                                                                    s.Pendentes == 0)</div>
-                                            <small class="text-muted">Centros de Custo Confirmados</small>
-                                        </div>
+                </div>
+
+                <!-- Cards de resumo na mesma linha -->
+                @if (centrosCustoStatus is not null && centrosCustoStatus.Count > 0)
+                {
+                    <div class="flex-grow-1 d-flex gap-3 h-100">
+                        <!-- Card Confirmados -->
+                        <div class="flex-fill">
+                            <div class="card shadow-sm h-100" style="border: 1px solid rgba(21, 128, 61, 0.4); background: linear-gradient(135deg, #f0fdf4, #dcfce7); transition: transform 0.2s;">
+                                <div class="card-body py-2 px-3 d-flex align-items-center gap-3">
+                                    <div class="d-flex align-items-center justify-content-center rounded-circle shadow-sm" style="width: 48px; height: 48px; background-color: #ffffff;">
+                                        <Icon Name="circle-check" Size="28" style="--icon-primary: #15803d; --icon-secondary: #4ade80; --icon-secondary-opacity: 1;" />
+                                    </div>
+                                    <div class="text-start">
+                                        <div class="fs-3 fw-bold lh-1" style="color: #16a34a;">@centrosCustoStatus.Count(s => s.Confirmado && s.Pendentes == 0)</div>
+                                        <small class="fw-bold text-uppercase" style="color: #15803d; font-size: 0.7rem; letter-spacing: 0.05em;">Centros de Custo Confirmados</small>
                                     </div>
                                 </div>
-                                <div class="flex-fill">
-                                    <div class="card text-center border-warning h-100">
-                                        <div class="card-body py-2">
-                                            <div class="fs-3 fw-bold text-warning">@centrosCustoStatus.Count(s => !s.Confirmado ||
-                                                                                                                            s.Pendentes > 0)</div>
-                                                <small class="text-muted">Centros de Custo Pendentes</small>
-                                            </div>
-                                        </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Pendentes -->
+                        <div class="flex-fill">
+                            <div class="card shadow-sm h-100" style="border: 1px solid rgba(180, 83, 9, 0.4); background: linear-gradient(135deg, #fffbeb, #fef3c7); transition: transform 0.2s;">
+                                <div class="card-body py-2 px-3 d-flex align-items-center gap-3">
+                                    <div class="d-flex align-items-center justify-content-center rounded-circle shadow-sm" style="width: 48px; height: 48px; background-color: #ffffff;">
+                                        <Icon Name="clock" Size="28" style="--icon-primary: #b45309; --icon-secondary: #fbbf24; --icon-secondary-opacity: 1;" />
+                                    </div>
+                                    <div class="text-start">
+                                        <div class="fs-3 fw-bold lh-1" style="color: #d97706;">@centrosCustoStatus.Count(s => !s.Confirmado || s.Pendentes > 0)</div>
+                                        <small class="fw-bold text-uppercase" style="color: #b45309; font-size: 0.7rem; letter-spacing: 0.05em;">Centros de Custo Pendentes</small>
                                     </div>
                                 </div>
-                            }
+                            </div>
                         </div>
                     </div>
+                }
+            </div>
+        </div>
 
-                    @if (centrosCustoStatus is null)
-                    {
-                        <p class="text-muted">Carregando...</p>
-                    }
+        @if (centrosCustoStatus is null)
+        {
+            <p class="text-muted">Carregando...</p>
+        }
 
-                    <!-- Modais de Confirmação -->
+        <!-- Modais de Confirmação -->
                     @if (exibindoModalEncerrar)
                     {
                         <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5); z-index: 1050;">
@@ -216,9 +232,9 @@ else
                         <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5); z-index: 1050;">
                             <div class="modal-dialog modal-dialog-centered">
                                 <div class="modal-content">
-                                    <div class="modal-header">
+                                    <div class="modal-header bg-danger text-white">
                                         <h5 class="modal-title">Confirmar Reversão</h5>
-                                        <button type="button" class="btn-close" @onclick="FecharModalReverter"></button>
+                                        <button type="button" class="btn-close btn-close-white" @onclick="FecharModalReverter"></button>
                                     </div>
                                     <div class="modal-body">
                                         <p>Tem certeza que deseja reverter a última ação realizada neste mês?</p>
@@ -234,6 +250,82 @@ else
                             </div>
                         }
 
+                        @if (exibindoModalHistorico)
+                        {
+                            <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5); z-index: 1050;">
+                                <div class="modal-dialog modal-dialog-centered modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header" style="background-color: #6f42c1; color: white;">
+                                            <h5 class="modal-title d-flex align-items-center gap-2">
+                                                <Icon Name="rotate-left" Size="18" /> Histórico de Atestes - @historicoCentroCustoNome
+                                            </h5>
+                                            <button type="button" class="btn-close btn-close-white" @onclick="FecharHistorico"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            @if (historicoAtual.Count == 0)
+                                            {
+                                                <div class="alert alert-info">Nenhum histórico encontrado para este mês.</div>
+                                            }
+                                            else
+                                            {
+                                                <div class="list-group">
+                                                    @foreach (var h in historicoAtual)
+                                                    {
+                                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                                            <div class="d-flex align-items-center gap-3">
+                                                                @if (h.Usuario.Perfil == "Gestor Titular")
+                                                                {
+                                                                    <Icon Name="crown" Size="20" class="text-warning" title="Gestor Titular" />
+                                                                }
+                                                                else
+                                                                {
+                                                                    <Icon Name="user-tie" Size="20" class="text-secondary" title="Gestor Substituto" />
+                                                                }
+                                                                <div>
+                                                                    <strong>@h.Usuario.Nome</strong>
+                                                                    <div class="text-muted small">@h.DataConfirmacao.ToString("dd/MM/yyyy HH:mm")</div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="d-flex gap-4 text-center">
+                                                                <div>
+                                                                    <button class="btn btn-sm btn-outline-success"
+                                                                            @onclick='() => VerDetalhesHistorico(h, "OK")'>
+                                                                        <Icon Name="circle-check" Size="14" /> @h.QtdViagensOk
+                                                                    </button>
+                                                                    <br />
+                                                                    <small class="text-muted mt-1 d-inline-block">OK</small>
+                                                                </div>
+                                                                <div>
+                                                                    <button class="btn btn-sm btn-outline-danger"
+                                                                            @onclick='() => VerDetalhesHistorico(h, "Contestada")'>
+                                                                        <Icon Name="circle-xmark" Size="14" /> @h.QtdViagensContestadas
+                                                                    </button>
+                                                                    <br />
+                                                                    <small class="text-muted mt-1 d-inline-block">Contestadas</small>
+                                                                </div>
+                                                                <div>
+                                                                    <button class="btn btn-sm"
+                                                                            style="color: #6f42c1; border-color: #6f42c1; background-color: transparent;"
+                                                                            @onclick='() => VerDetalhesHistorico(h, "Outro Gestor")'>
+                                                                        <Icon Name="users" Size="14" /> @h.QtdViagensOutroGestor
+                                                                    </button>
+                                                                    <br />
+                                                                    <small class="text-muted mt-1 d-inline-block">Outro Gestor</small>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button class="btn btn-secondary" @onclick="FecharHistorico">Fechar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
                         @if (centrosCustoStatusExibicao is not null && centrosCustoStatusExibicao.Count == 0)
                         {
                             <div class="alert alert-info">Nenhuma viagem registrada para os centros de custo neste mês ou com os filtros
@@ -243,7 +335,7 @@ else
                             {
                                 <div class="table-responsive">
                                     <table class="table table-hover align-middle">
-                                        <thead class="table-dark">
+                                        <thead class="table-purple">
                                             <tr>
                                                 <th class="text-center">Centro de Custo</th>
                                                 <th class="text-center">Viagens</th>
@@ -266,8 +358,8 @@ else
                                                     <td class="text-center">
                                                         @if (s.TotalViagens > 0)
                                                         {
-                                                            <button class="btn btn-sm btn-outline-primary" @onclick="() => VerTodas(s)">
-                                                                <Icon Name="list" Size="14" /> @s.TotalViagens
+                                                            <button class="btn btn-sm btn-outline-primary btn-status-icon d-flex justify-content-between align-items-center px-2" @onclick="() => VerTodas(s)">
+                                                                <Icon Name="car" Size="14" /> <span>@s.TotalViagens</span>
                                                             </button>
                                                         }
                                                         else
@@ -278,8 +370,8 @@ else
                                                     <td class="text-center">
                                                         @if (s.Pendentes > 0)
                                                         {
-                                                            <button class="btn btn-sm btn-outline-warning text-dark" @onclick="() => VerPendentes(s)">
-                                                                <Icon Name="clock" Size="14" /> @s.Pendentes
+                                                            <button class="btn btn-sm btn-outline-warning btn-status-icon d-flex justify-content-between align-items-center px-2" @onclick="() => VerPendentes(s)">
+                                                                <Icon Name="clock" Size="14" /> <span>@s.Pendentes</span>
                                                             </button>
                                                         }
                                                         else
@@ -290,8 +382,8 @@ else
                                                     <td class="text-center">
                                                         @if (s.Aprovadas > 0)
                                                         {
-                                                            <button class="btn btn-sm btn-outline-success" @onclick="() => VerOK(s)">
-                                                                <Icon Name="circle-check" Size="14" /> @s.Aprovadas
+                                                            <button class="btn btn-sm btn-outline-success btn-status-icon d-flex justify-content-between align-items-center px-2" @onclick="() => VerOK(s)">
+                                                                <Icon Name="circle-check" Size="14" /> <span>@s.Aprovadas</span>
                                                             </button>
                                                         }
                                                         else
@@ -302,10 +394,8 @@ else
                                                     <td class="text-center">
                                                         @if (s.Consideradas > 0)
                                                         {
-                                                            <button class="btn btn-sm"
-                                                                    style="color: #6f42c1; border-color: #6f42c1; background-color: transparent;"
-                                                                    @onclick="() => VerConsideradas(s)">
-                                                                <Icon Name="circle-check" Size="14" /> @s.Consideradas
+                                                            <button class="btn btn-sm btn-outline-purple btn-status-icon d-flex justify-content-between align-items-center px-2" @onclick="() => VerConsideradas(s)">
+                                                                <Icon Name="circle-check" Size="14" /> <span>@s.Consideradas</span>
                                                             </button>
                                                         }
                                                         else
@@ -316,8 +406,8 @@ else
                                                     <td class="text-center">
                                                         @if (s.Contestadas > 0)
                                                         {
-                                                            <button class="btn btn-sm btn-outline-danger" @onclick="() => VerContestadas(s)">
-                                                                <Icon Name="circle-xmark" Size="14" /> @s.Contestadas
+                                                            <button class="btn btn-sm btn-outline-danger btn-status-icon d-flex justify-content-between align-items-center px-2" @onclick="() => VerContestadas(s)">
+                                                                <Icon Name="circle-xmark" Size="14" /> <span>@s.Contestadas</span>
                                                             </button>
                                                         }
                                                         else
@@ -336,31 +426,37 @@ else
                                                         }
                                                     </td>
                                                     <td class="text-center">
-                                                        @if (s.Confirmado && s.Pendentes > 0)
+                                                        @if (s.Confirmado && s.Pendentes > 0 && s.Pendentes == s.PendentesDeGestor)
                                                         {
-                                                            <span class="badge bg-danger">
-                                                                <Icon Name="triangle-exclamation" Size="12" /> Novas Pendências
+                                                            <span class="badge status-badge-fixed" style="background-color: #198754;">
+                                                                <Icon Name="user-tie" Size="12" /> Viagem de Gestor
+                                                            </span>
+                                                        }
+                                                        else if (s.Confirmado && s.Pendentes > 0)
+                                                        {
+                                                            <span class="badge bg-danger status-badge-fixed">
+                                                                <Icon Name="triangle-exclamation" Size="12" style="color: #fff;" /> Novas Pendências
                                                             </span>
                                                         }
                                                         else if (s.Confirmado)
                                                         {
-                                                            <span class="badge bg-success">
+                                                            <span class="badge bg-success status-badge-fixed">
                                                                 <Icon Name="circle-check" Size="12" /> Confirmado
                                                             </span>
                                                         }
                                                         else if (mesEncerrado)
                                                         {
-                                                            <span class="badge bg-secondary">
+                                                            <span class="badge bg-secondary status-badge-fixed">
                                                                 <Icon Name="lock" Size="12" /> Encerrado
                                                             </span>
                                                         }
                                                         else if (s.Pendentes == 0 && s.TotalViagens > 0)
                                                         {
-                                                            <span class="badge bg-info">Aguardando confirmação</span>
+                                                            <span class="badge bg-info status-badge-fixed">Aguardando confirmação</span>
                                                         }
                                                         else
                                                         {
-                                                            <span class="badge bg-warning text-dark">
+                                                            <span class="badge bg-warning text-dark status-badge-fixed">
                                                                 <Icon Name="clock" Size="12" /> Pendente
                                                             </span>
                                                         }
@@ -368,7 +464,16 @@ else
                                                     <td class="text-center">
                                                         @if (s.Confirmado)
                                                         {
-                                                            <small>@s.ConfirmadoPor — @s.DataConfirmacao?.ToString("dd/MM HH:mm")</small>
+                                                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                                                <div>
+                                                                    <small class="d-block">@s.ConfirmadoPor</small>
+                                                                    <small class="text-muted">@s.DataConfirmacao?.ToString("dd/MM HH:mm")</small>
+                                                                </div>
+                                                                <button class="btn btn-sm btn-outline-primary btn-historico" title="Histórico de Conferências"
+                                                                        @onclick="() => AbrirHistorico(s)">
+                                                                    <Icon Name="rotate-left" Size="14" />
+                                                                </button>
+                                                            </div>
                                                         }
                                                         else
                                                         {
@@ -468,19 +573,43 @@ else
                                 {
                                     <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
                                         <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
+                                            @{
+                                                var borderColorClass = detalheStatus switch {
+                                                    "OK" => "border-success",
+                                                    "Contestada" => "border-danger",
+                                                    "Pendente" => "border-warning",
+                                                    "Outro Gestor" => "border-secondary",
+                                                    "Todas" => "border-primary",
+                                                    _ => ""
+                                                };
+                                                var borderColorStyle = detalheStatus == "Considerado" ? "border-color: #6f42c1 !important;" : "";
+
+                                                var headerBgClass = detalheStatus switch {
+                                                    "OK" => "bg-success text-white",
+                                                    "Contestada" => "bg-danger text-white",
+                                                    "Pendente" => "bg-warning text-dark",
+                                                    "Outro Gestor" => "bg-secondary text-white",
+                                                    "Todas" => "bg-primary text-white",
+                                                    _ => "text-white"
+                                                };
+                                                var headerBgStyle = detalheStatus == "Considerado" ? "background-color: #6f42c1;" : "";
+                                                var closeBtnClass = detalheStatus == "Pendente" ? "btn-close" : "btn-close btn-close-white";
+                                            }
+                                            <div class="modal-content @borderColorClass" style="@borderColorStyle">
+                                                <div class="modal-header @headerBgClass" style="@headerBgStyle">
                                                     <h5 class="modal-title">
                                                         @(detalheStatus switch
                                                         {
                                                             "OK" => "Viagens Aprovadas",
+                                                            "Considerado" => "Viagens Consideradas",
                                                             "Contestada" => "Viagens Contestadas",
                                                             "Pendente" => "Viagens Pendentes",
+                                                            "Outro Gestor" => "Viagens de Outros Gestores",
                                                             _ => "Todas as Viagens"
                                                         })
                                                         — @detalheCentroCustoNome
                                                     </h5>
-                                                    <button type="button" class="btn-close" @onclick="FecharDetalhes"></button>
+                                                    <button type="button" class="@closeBtnClass" @onclick="FecharDetalhes"></button>
                                                 </div>
                                                 <div class="modal-body">
                                                     @if (detalheStatus == "OK")
@@ -513,9 +642,10 @@ else
                                                                         <th class="text-end">V. Cotado</th>
                                                                         <th class="text-end">V. Final</th>
                                                                         <th>Motivo da Viagem</th>
+                                                                        <th>Status Parceiro</th>
                                                                         @if (detalheStatus == "Todas" || detalheStatus == "OK")
                                                                         {
-                                                                            <th>Status</th>
+                                                                            <th>Status Ateste</th>
                                                                         }
                                                                         @if (detalheStatus == "Contestada" || detalheStatus == "Todas")
                                                                         {
@@ -535,6 +665,16 @@ else
                                                                             <td class="text-end">R$ @v.ValorCotado.ToString("N2")</td>
                                                                             <td class="text-end">R$ @v.ValorFinal.ToString("N2")</td>
                                                                             <td>@v.Motivo</td>
+                                                                            <td>
+                                                                                @if (v.StatusOrigem.Contains("Cancelada", StringComparison.OrdinalIgnoreCase))
+                                                                                {
+                                                                                    <span class="badge bg-danger">@v.StatusOrigem</span>
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    <span class="badge bg-secondary">@v.StatusOrigem</span>
+                                                                                }
+                                                                            </td>
                                                                             @if (detalheStatus == "Todas" || detalheStatus == "OK")
                                                                             {
                                                                                 <td>
@@ -583,6 +723,7 @@ else
                                         </div>
                                     </div>
                                 }
+}
 
 @code {
     private bool isAdmin;
@@ -592,6 +733,28 @@ else
     private List<CentroCustoStatusDto>? centrosCustoStatus;
     private List<CentroCustoStatusDto>? centrosCustoStatusExibicao;
     private string filtroPesquisa = "";
+
+    // Histórico modal
+    private bool exibindoModalHistorico = false;
+    private List<ConferenciaMensal> historicoAtual = new();
+    private string historicoCentroCustoNome = "";
+
+    private async Task AbrirHistorico(CentroCustoStatusDto s)
+    {
+        historicoCentroCustoNome = s.CentroCustoNome;
+        historicoAtual = await Db.ConferenciasMensais
+            .Include(c => c.Usuario)
+            .Where(c => c.CentroCustoId == s.CentroCustoId && c.Ano == anoSelecionado && c.Mes == mesSelecionado)
+            .OrderByDescending(c => c.DataConfirmacao)
+            .ToListAsync();
+        exibindoModalHistorico = true;
+    }
+
+    private void FecharHistorico()
+    {
+        exibindoModalHistorico = false;
+        historicoAtual.Clear();
+    }
 
     // Encerramento mensal
     private EncerramentoMensal? encerramentoRegistro;
@@ -662,6 +825,18 @@ else
         var mesInicio = new DateOnly(ano, mes, 1);
         var mesFim = mesInicio.AddMonths(1);
 
+        // Gestor responsável pela conferência, respeitando a hierarquia:
+        // 1. Gestor Central Ateste
+        // 2. Gestor Titular
+        // 3. Gestor Substituto
+        var gestoresAptos = await Db.Usuarios
+            .Where(u => u.CentroCustoId.HasValue && u.Ativo && !u.IsTeste &&
+                        (u.Perfil == "Gestor Central Ateste" || u.Perfil == "Gestor Titular" || u.Perfil == "Gestor Substituto"))
+            .Select(u => new { u.CentroCustoId, u.Nome, u.Perfil, u.Cpf })
+            .ToListAsync();
+
+        var cpfsGestores = gestoresAptos.Where(g => !string.IsNullOrEmpty(g.Cpf)).Select(g => g.Cpf).ToList();
+
         // Viagens agrupadas por centro de custo
         var viagensPorCentroCusto = await Db.Viagens
             .Where(v => v.DataViagem >= mesInicio && v.DataViagem < mesFim)
@@ -672,6 +847,7 @@ else
                 CentroCustoNome = g.Key.Nome,
                 Total = g.Count(),
                 Pendentes = g.Count(v => v.StatusConferenciaGestor == "Pendente"),
+                PendentesDeGestor = g.Count(v => v.StatusConferenciaGestor == "Pendente" && cpfsGestores.Contains(v.Colaborador.Cpf)),
                 Aprovadas = g.Count(v => v.StatusConferenciaGestor == "OK"),
                 Consideradas = g.Count(v => v.StatusConferenciaGestor == "Considerado"),
                 Contestadas = g.Count(v => v.StatusConferenciaGestor == "Contestada")
@@ -680,21 +856,16 @@ else
 
         var todosCentrosCusto = await Db.CentrosCusto.ToListAsync();
 
-        // Confirmações do mês
+        // Confirmações do mês (pegar a mais recente)
         var confirmacoes = await Db.ConferenciasMensais
             .Where(c => c.Ano == ano && c.Mes == mes)
             .Include(c => c.Usuario)
-            .ToDictionaryAsync(c => c.CentroCustoId);
-
-        // Gestor responsável pela conferência, respeitando a hierarquia:
-        // 1. Gestor Central Ateste
-        // 2. Gestor Titular
-        // 3. Gestor Substituto
-        var gestoresAptos = await Db.Usuarios
-            .Where(u => u.CentroCustoId.HasValue && u.Ativo && !u.IsTeste &&
-                        (u.Perfil == "Gestor Central Ateste" || u.Perfil == "Gestor Titular" || u.Perfil == "Gestor Substituto"))
-            .Select(u => new { u.CentroCustoId, u.Nome, u.Perfil })
+            .OrderByDescending(c => c.DataConfirmacao)
             .ToListAsync();
+
+        var ultimaConfirmacaoPorCC = confirmacoes
+            .GroupBy(c => c.CentroCustoId)
+            .ToDictionary(g => g.Key, g => g.First());
 
         var gestorPorCentroCusto = gestoresAptos
             .GroupBy(u => u.CentroCustoId!.Value)
@@ -708,13 +879,14 @@ else
         centrosCustoStatus = todosCentrosCusto.Select(c =>
         {
             var v = viagensPorCentroCusto.GetValueOrDefault(c.Id);
-            var conf = confirmacoes.GetValueOrDefault(c.Id);
+            var conf = ultimaConfirmacaoPorCC.GetValueOrDefault(c.Id);
             return new CentroCustoStatusDto
             {
                 CentroCustoId = c.Id,
                 CentroCustoNome = c.Nome,
                 TotalViagens = v?.Total ?? 0,
                 Pendentes = v?.Pendentes ?? 0,
+                PendentesDeGestor = v?.PendentesDeGestor ?? 0,
                 Aprovadas = v?.Aprovadas ?? 0,
                 Consideradas = v?.Consideradas ?? 0,
                 Contestadas = v?.Contestadas ?? 0,
@@ -884,11 +1056,12 @@ else
 
         int GetStatusUrgencia(CentroCustoStatusDto s)
         {
-            if (s.TotalViagens == 0) return 4;
-            if (s.Confirmado && s.Pendentes > 0) return 1;
-            if (s.Confirmado) return 3;
-            if (s.Pendentes == 0 && s.TotalViagens > 0) return 2;
-            return 0;
+            if (s.TotalViagens == 0) return 6;
+            if (s.Confirmado && s.Pendentes > 0 && s.Pendentes == s.PendentesDeGestor) return 2;
+            if (s.Confirmado && s.Pendentes > 0) return 3;
+            if (s.Confirmado) return 1;
+            if (s.Pendentes == 0 && s.TotalViagens > 0) return 4;
+            return 5;
         }
 
         int GetCategoria(CentroCustoStatusDto s)
@@ -904,6 +1077,7 @@ else
 
         string ObterStatusTexto(CentroCustoStatusDto s)
         {
+            if (s.Confirmado && s.Pendentes > 0 && s.Pendentes == s.PendentesDeGestor) return "Viagem de Gestor";
             if (s.Confirmado && s.Pendentes > 0) return "Novas Pendências";
             if (s.Confirmado) return "Confirmado";
             if (mesEncerrado) return "Encerrado";
@@ -928,13 +1102,13 @@ StringComparison.OrdinalIgnoreCase)) ||
         }
 
         centrosCustoStatusExibicao = ordenarStatusAsc
-            ? query.OrderBy(s => GetCategoria(s))
+            ? query.OrderByDescending(s => GetCategoria(s))
                    .ThenByDescending(s => GetStatusUrgencia(s))
-                   .ThenBy(s => s.CentroCustoNome)
+                   .ThenByDescending(s => s.CentroCustoNome)
                    .ToList()
             : query.OrderBy(s => GetCategoria(s))
                    .ThenBy(s => GetStatusUrgencia(s))
-                   .ThenByDescending(s => s.CentroCustoNome)
+                   .ThenBy(s => s.CentroCustoNome)
                    .ToList();
     }
 
@@ -966,8 +1140,45 @@ StringComparison.OrdinalIgnoreCase)) ||
         }
 
         detalheViagens = await query
-            .OrderByDescending(v => v.DataViagem)
+            .OrderBy(v => v.DataViagem)
             .ToListAsync();
+    }
+
+    private async Task VerDetalhesHistorico(ConferenciaMensal h, string tipo)
+    {
+        detalheCentroCustoNome = historicoCentroCustoNome + $" (Ateste de {h.Usuario?.Nome})";
+        detalheStatus = tipo;
+
+        var mesInicio = new DateOnly(h.Ano, h.Mes, 1);
+        var mesFim = mesInicio.AddMonths(1);
+
+        var query = Db.Viagens
+            .Include(v => v.Colaborador)
+            .Include(v => v.Parceiro)
+            .Where(v => v.CentroCustoId == h.CentroCustoId &&
+                        v.DataViagem >= mesInicio && v.DataViagem < mesFim &&
+                        v.ConferidoPorUsuarioId == h.UsuarioId);
+
+        if (tipo == "OK")
+        {
+            query = query.Where(v => v.StatusConferenciaGestor == "OK" || v.StatusConferenciaGestor == "Considerado");
+        }
+        else if (tipo == "Contestada")
+        {
+            query = query.Where(v => v.StatusConferenciaGestor == "Contestada");
+        }
+        else if (tipo == "Outro Gestor")
+        {
+            var gestoresCpf = await Db.Usuarios
+                .Where(u => u.Ativo && !u.IsTeste && (u.Perfil == "Gestor Central Ateste" || u.Perfil == "Gestor Titular" || u.Perfil ==
+"Gestor Substituto"))
+                .Select(u => u.Cpf)
+                .ToListAsync();
+
+            query = query.Where(v => gestoresCpf.Contains(v.Colaborador.Cpf) && v.Colaborador.Cpf != h.Usuario!.Cpf);
+        }
+
+        detalheViagens = await query.OrderBy(v => v.DataViagem).ToListAsync();
     }
 
     private void FecharDetalhes()
@@ -981,6 +1192,7 @@ StringComparison.OrdinalIgnoreCase)) ||
         public string CentroCustoNome { get; set; } = "";
         public int TotalViagens { get; set; }
         public int Pendentes { get; set; }
+        public int PendentesDeGestor { get; set; }
         public int Aprovadas { get; set; }
         public int Consideradas { get; set; }
         public int Contestadas { get; set; }

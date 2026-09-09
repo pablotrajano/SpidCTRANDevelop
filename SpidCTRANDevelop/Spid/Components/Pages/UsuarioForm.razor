@@ -8,20 +8,28 @@
 
 <PageTitle>@(editando ? "Editar" : "Novo") Usuário — SPID</PageTitle>
 
-<h3 class="mb-4">@if (editando) {
-    <Icon Name="user-pen" Size="24" Class="page-header-icon" /> <text>Editar Usuário</text>
-} else
-{
-    <Icon Name="user-plus" Size="24" Class="page-header-icon" /> <text>Novo Usuário</text>
-}
-</h3>
-
 @if (!isAdmin)
 {
     <div class="alert alert-warning">Você não tem permissão para acessar esta página.</div>
 }
 else
 {
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <h3 class="mb-0">
+            @if (editando)
+            {
+                <Icon Name="user-pen" Size="24" Class="page-header-icon" /> <text>Editar Usuário</text>
+            }
+            else
+            {
+                <Icon Name="user-plus" Size="24" Class="page-header-icon" /> <text>Novo Usuário</text>
+            }
+        </h3>
+        <a href="/usuarios" class="btn btn-outline-secondary btn-sm">
+            <Icon Name="chevron-left" Size="14" style="--icon-primary: rgba(60,70,90,0.9); --icon-secondary: rgba(60,70,90,0.5); --icon-secondary-opacity: 1;" /> Voltar
+        </a>
+    </div>
+
     @if (!string.IsNullOrEmpty(erro))
     {
         <div class="alert alert-danger">@erro</div>
@@ -32,8 +40,12 @@ else
         <div class="alert alert-success">@sucesso</div>
     }
 
-    <div class="card shadow-sm" style="max-width: 600px;">
-        <div class="card-body">
+    <div class="card shadow-sm" style="max-width: 660px; border: 2px solid rgba(111, 66, 193, 0.4); overflow: hidden; border-radius: 0.5rem;">
+        <div class="card-header d-flex align-items-center gap-2 text-white" style="background-color: #6f42c1; border-bottom: 2px solid #5a32a3; border-radius: 0;">
+            <Icon Name="@(editando ? "user-pen" : "user-plus")" Size="20" style="--icon-primary: rgba(255,255,255,0.9); --icon-secondary: rgba(255,255,255,0.6); --icon-secondary-opacity: 1;" />
+            <span class="fw-semibold">@(editando ? $"Editando: {nome}" : "Novo Usuário")</span>
+        </div>
+        <div class="card-body pt-4">
             <EditForm Model="this" OnValidSubmit="Salvar">
                 <div class="mb-3">
                     <label class="form-label">Nome completo</label>
@@ -79,7 +91,7 @@ else
                     <div class="col-6">
                         <label class="form-label">Tipo de Gestor</label>
                         <InputSelect @bind-Value="subtipoPerfil" class="form-select"
-                                     disabled="@((editando && UserSession.UsuarioLogado!.Perfil == "Gestor Central Padrão") || (grupoPerfil != "Gestor" && grupoPerfil != "Gestor Central"))">
+                                     disabled="@(grupoPerfil != "Gestor" && grupoPerfil != "Gestor Central")">
                             <option value="">Selecione...</option>
                             @if (grupoPerfil == "Gestor")
                             {
@@ -115,43 +127,33 @@ else
                     </InputSelect>
                 </div>
 
-                @if (editando)
-                {
-                    <div class="mb-3">
-                        <label class="form-label">Nova senha (deixe em branco para manter)</label>
-                        <InputText @bind-Value="senha" type="password" class="form-control" placeholder="••••••••" />
-                    </div>
-                }
-                else
+                @if (!editando)
                 {
                     <div class="alert alert-info mb-3">
                         <small>A senha inicial será definida automaticamente como o <strong>Ponto</strong> do usuário. No
                             primeiro login, ele será solicitado a criar uma nova senha.</small>
-                        </div>
-                    }
+                    </div>
+                }
 
-                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                <hr class="my-3" />
+
+                <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-3">
                         <div class="form-check">
                             <InputCheckbox @bind-Value="ativo" class="form-check-input" id="ativoCheck" />
                             <label class="form-check-label" for="ativoCheck">Usuário ativo</label>
                         </div>
                         @if (UserSession.UsuarioLogado?.Perfil == "Admin")
                         {
-                            <div class="form-check ms-3">
+                            <div class="form-check">
                                 <InputCheckbox @bind-Value="isTeste" class="form-check-input" id="testeCheck" />
                                 <label class="form-check-label text-purple fw-semibold" for="testeCheck">É usuário de Teste?</label>
                             </div>
                         }
-                        @if (editando && IdUsuario != UserSession.UsuarioLogado?.Id && UserSession.UsuarioLogado?.Perfil ==
-                "Admin")
-                        {
-                            <button type="button" class="btn btn-outline-danger btn-sm"
-                                    @onclick="() => exibindoConfirmacaoExclusao = true">
-                                <Icon Name="trash" Size="14" /> Excluir Usuário
-                            </button>
-                        }
                     </div>
+                </div>
 
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary" disabled="@salvando">
                             @if (salvando)
@@ -162,43 +164,97 @@ else
                         </button>
                         <a href="/usuarios" class="btn btn-outline-secondary">Cancelar</a>
                     </div>
-                </EditForm>
+
+                    @if (editando)
+                    {
+                        <div class="d-flex gap-2">
+                            @if (IdUsuario != UserSession.UsuarioLogado?.Id)
+                            {
+                                <button type="button" class="btn btn-outline-warning btn-sm"
+                                    @onclick="() => exibindoConfirmacaoReset = true">
+                                    <Icon Name="rotate-left" Size="14" style="--icon-primary: #b45309; --icon-secondary: #fbbf24; --icon-secondary-opacity: 1;" /> Resetar Senha
+                                </button>
+                            }
+                            @if (IdUsuario != UserSession.UsuarioLogado?.Id && UserSession.UsuarioLogado?.Perfil == "Admin")
+                            {
+                                <button type="button" class="btn btn-outline-danger btn-sm"
+                                        @onclick="() => exibindoConfirmacaoExclusao = true">
+                                    <Icon Name="trash" Size="14" /> Excluir Usuário
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@* Modal: Confirmar Reset de Senha *@
+@if (exibindoConfirmacaoReset)
+{
+    <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5); z-index: 1050;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-warning">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title"><Icon Name="key" Size="18" /> Resetar Senha</h5>
+                    <button type="button" class="btn-close" @onclick="() => exibindoConfirmacaoReset = false"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Tem certeza que deseja <strong>resetar a senha</strong> do usuário <strong>@nome</strong>?</p>
+                    <p class="text-muted small mb-0">
+                        <Icon Name="circle-info" /> O usuário ficará sem senha e precisará acessar o sistema pelo botão de
+                        <strong>Primeiro Acesso</strong> para definir uma nova senha.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="() => exibindoConfirmacaoReset = false">Cancelar</button>
+                    <button class="btn btn-warning text-dark fw-bold" @onclick="ResetarSenha" disabled="@salvando">
+                        @if (salvando)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        Confirmar Reset
+                    </button>
+                </div>
             </div>
         </div>
-    }
+    </div>
+}
 
-    @if (exibindoConfirmacaoExclusao)
-    {
-        <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5); z-index: 1050;">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header bg-danger text-white">
-                        <h5 class="modal-title">Confirmar Exclusão Permanente</h5>
-                        <button type="button" class="btn-close btn-close-white"
-                                @onclick="() => exibindoConfirmacaoExclusao = false"></button>
+@* Modal: Confirmar Exclusão *@
+@if (exibindoConfirmacaoExclusao)
+{
+    <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5); z-index: 1050;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Confirmar Exclusão Permanente</h5>
+                    <button type="button" class="btn-close btn-close-white"
+                            @onclick="() => exibindoConfirmacaoExclusao = false"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Tem certeza que deseja <strong>excluir permanentemente</strong> o usuário <strong>@nome</strong> do
+                        sistema?</p>
+                        <p class="text-danger small">
+                            <Icon Name="triangle-exclamation" /> Esta ação não pode ser desfeita e pode falhar se o usuário
+                            possuir registros vinculados (viagens, logs, etc).
+                        </p>
                     </div>
-                    <div class="modal-body">
-                        <p>Tem certeza que deseja <strong>excluir permanentemente</strong> o usuário <strong>@nome</strong> do
-                            sistema?</p>
-                            <p class="text-danger small">
-                                <Icon Name="triangle-exclamation" /> Esta ação não pode ser desfeita e pode falhar se o usuário
-                                possuir registros vinculados (viagens, logs, etc).
-                            </p>
-                        </div>
-                        <div class="modal-footer">
-                            <button class="btn btn-secondary" @onclick="() => exibindoConfirmacaoExclusao = false">Cancelar</button>
-                            <button class="btn btn-danger" @onclick="ExcluirUsuario" disabled="@salvando">
-                                @if (salvando)
-                                {
-                                    <span class="spinner-border spinner-border-sm me-2"></span>
-                                }
-                                Confirmar Exclusão
-                            </button>
-                        </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" @onclick="() => exibindoConfirmacaoExclusao = false">Cancelar</button>
+                        <button class="btn btn-danger" @onclick="ExcluirUsuario" disabled="@salvando">
+                            @if (salvando)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            Confirmar Exclusão
+                        </button>
                     </div>
                 </div>
             </div>
-        }
+        </div>
+    }
 
 @code {
     [Parameter] public int IdUsuario { get; set; }
@@ -209,6 +265,7 @@ else
     private string? erro;
     private string? sucesso;
     private bool exibindoConfirmacaoExclusao;
+    private bool exibindoConfirmacaoReset;
 
     private string nome = "";
     private string email = "";
@@ -217,7 +274,6 @@ else
     private string grupoPerfil = "";
     private string subtipoPerfil = "";
     private int centroCustoId;
-    private string senha = "";
     private bool ativo = true;
     private bool isTeste = false;
 
@@ -391,10 +447,7 @@ else
                 usuarioEditando.Ponto = ponto;
                 usuarioEditando.Cpf = cpf;
                 
-                if (UserSession.UsuarioLogado!.Perfil != "Gestor Central Padrão")
-                {
-                    usuarioEditando.Perfil = perfilFinal;
-                }
+                usuarioEditando.Perfil = perfilFinal;
 
                 usuarioEditando.CentroCustoId = centroCustoId > 0 ? centroCustoId : null;
                 usuarioEditando.Ativo = ativo;
@@ -402,11 +455,6 @@ else
                 if (UserSession.UsuarioLogado!.Perfil == "Admin")
                 {
                     usuarioEditando.IsTeste = isTeste;
-                }
-
-                if (!string.IsNullOrWhiteSpace(senha))
-                {
-                    usuarioEditando.SenhaHash = UserSession.HashSenha(usuarioEditando, senha);
                 }
 
                 await Db.SaveChangesAsync();
@@ -444,6 +492,34 @@ else
         catch (Exception ex)
         {
             erro = $"Erro ao salvar: {ex.Message}";
+        }
+        finally
+        {
+            salvando = false;
+        }
+    }
+
+    private async Task ResetarSenha()
+    {
+        if (usuarioEditando is null) return;
+
+        salvando = true;
+        erro = null;
+
+        try
+        {
+            // Definir uma senha impossível de ser utilizada — o usuário precisará passar pelo fluxo de Primeiro Acesso
+            usuarioEditando.SenhaHash = $"RESET_{Guid.NewGuid():N}";
+            usuarioEditando.ContadorAcessos = 0;
+
+            await Db.SaveChangesAsync();
+            exibindoConfirmacaoReset = false;
+            sucesso = $"Senha de {usuarioEditando.Nome} resetada com sucesso! O usuário deverá acessar o sistema pelo fluxo de Primeiro Acesso.";
+        }
+        catch (Exception ex)
+        {
+            erro = $"Erro ao resetar senha: {ex.Message}";
+            exibindoConfirmacaoReset = false;
         }
         finally
         {

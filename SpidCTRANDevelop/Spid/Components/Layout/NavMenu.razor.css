@@ -34,7 +34,7 @@
     color: inherit;
 }
 .nav-item {
-    font-size: 0.9rem;
+    font-size: 1.0rem;
     padding-bottom: 0.5rem;
 }
 .nav-item:first-of-type {
@@ -90,7 +90,7 @@
     justify-content: space-between;
     align-items: center;
     color: rgba(255, 255, 255, 0.9);
-    font-size: 0.75rem;
+    font-size: 0.9rem;
     text-transform: uppercase;
     font-weight: 700;
     letter-spacing: 0.5px;

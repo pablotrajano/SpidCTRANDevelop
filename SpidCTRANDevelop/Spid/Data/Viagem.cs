@@ -34,4 +34,7 @@ public class Viagem
 
     public DateTime? DataConferencia { get; set; }
     public string? MotivoContestacao { get; set; }
+
+    public int? ConferidoPorUsuarioId { get; set; }
+    public Usuario? ConferidoPorUsuario { get; set; }
 }

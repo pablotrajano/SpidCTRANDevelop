@@ -68,15 +68,15 @@ else if (viagens is null)
 else
 {
     <!-- Filtros e Resumo -->
-    <div class="card shadow-sm mb-4">
+    <div class="card shadow-sm mb-4" style="border: 2px solid rgba(111, 66, 193, 0.4);">
         <div class="card-body d-flex align-items-center gap-3 flex-wrap">
             <!-- Filtros -->
             <div class="d-flex gap-3 align-items-end flex-wrap flex-shrink-0">
-                <div>
-                    <label class="form-label small mb-1">Mês</label>
+                <div class="d-flex flex-column">
+                    <label class="form-label mb-1 fw-bold">Mês</label>
                     <div class="d-flex align-items-center gap-1">
-                        <button class="filter-btn" @onclick="MesAnterior" disabled="@(mesSelecionado <= 1)">&#9664;</button>
-                        <select class="filter-select" @bind="mesSelecionado" @bind:after="CarregarViagens">
+                        <button class="btn btn-primary p-0 d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; border-radius: 8px;" @onclick="MesAnterior" disabled="@(mesSelecionado <= 1)">&#9664;</button>
+                        <select class="form-select text-center" style="height: 34px; border-radius: 8px; width: 120px; padding-top: 0; padding-bottom: 0;" @bind="mesSelecionado" @bind:after="CarregarViagens">
                             @for (int m = 1; m <= 12; m++)
                             {
                                 var mes = m;
@@ -85,22 +85,22 @@ else
                                 </option>
                             }
                         </select>
-                        <button class="filter-btn" @onclick="MesSeguinte"
+                        <button class="btn btn-primary p-0 d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; border-radius: 8px;" @onclick="MesSeguinte"
                                 disabled="@(mesSelecionado >= 12)">&#9654;</button>
                     </div>
                 </div>
-                <div>
-                    <label class="form-label small mb-1">Ano</label>
-                    <select class="filter-select" @bind="anoSelecionado" @bind:after="CarregarViagens">
+                <div class="d-flex flex-column">
+                    <label class="form-label mb-1 fw-bold">Ano</label>
+                    <select class="form-select text-center" style="height: 34px; border-radius: 8px; width: 90px; padding-top: 0; padding-bottom: 0;" @bind="anoSelecionado" @bind:after="CarregarViagens">
                         @foreach (var a in anosDisponiveis)
                         {
                             <option value="@a">@a</option>
                         }
                     </select>
                 </div>
-                <div>
-                    <label class="form-label small mb-1">Status</label>
-                    <select class="filter-select" @bind="filtroStatus" @bind:after="Filtrar">
+                <div class="d-flex flex-column">
+                    <label class="form-label mb-1 fw-bold">Status</label>
+                    <select class="form-select text-center" style="height: 34px; border-radius: 8px; width: 140px; padding-top: 0; padding-bottom: 0;" @bind="filtroStatus" @bind:after="Filtrar">
                         <option value="">Todos</option>
                         <option value="Pendente">Pendente</option>
                         <option value="OK">OK</option>
@@ -108,9 +108,9 @@ else
                         <option value="Contestada">Contestada</option>
                     </select>
                 </div>
-                <div>
-                    <label class="form-label small mb-1">Pesquisar</label>
-                    <input type="text" class="form-control form-control-sm" placeholder="Buscar..." @bind="filtroPesquisa"
+                <div class="d-flex flex-column">
+                    <label class="form-label mb-1 fw-bold">Pesquisar</label>
+                    <input type="text" class="form-control" style="height: 34px; border-radius: 8px; width: 190px; padding-top: 0; padding-bottom: 0;" placeholder="Buscar..." @bind="filtroPesquisa"
                            @bind:after="Filtrar" />
                 </div>
             </div>
@@ -144,35 +144,47 @@ else
             @if (!mesOcultoParaGestor)
             {
                 <!-- Resumo -->
-                <div class="flex-grow-1 d-flex gap-3">
+                <div class="flex-grow-1 d-flex gap-3 h-100">
                     <div class="flex-fill">
-                        <div class="card text-center border-warning h-100">
-                            <div class="card-body py-2">
-                                <div class="fs-3 fw-bold text-warning">@viagens.Count(v => v.StatusConferenciaGestor ==
-                                                                                           "Pendente")</div>
-                                    <small class="text-muted">Pendentes</small>
+                        <div class="card shadow-sm h-100" style="border: 1px solid rgba(180, 83, 9, 0.4); background: linear-gradient(135deg, #fffbeb, #fef3c7); transition: transform 0.2s;">
+                            <div class="card-body py-2 px-3 d-flex align-items-center gap-3">
+                                <div class="d-flex align-items-center justify-content-center rounded-circle shadow-sm" style="width: 48px; height: 48px; background-color: #ffffff;">
+                                    <Icon Name="clock" Size="28" style="--icon-primary: #b45309; --icon-secondary: #fbbf24; --icon-secondary-opacity: 1;" />
+                                </div>
+                                <div class="text-start">
+                                    <div class="fs-3 fw-bold lh-1" style="color: #d97706;">@viagens.Count(v => v.StatusConferenciaGestor == "Pendente")</div>
+                                    <small class="fw-bold text-uppercase" style="color: #b45309; font-size: 0.7rem; letter-spacing: 0.05em;">Pendentes</small>
                                 </div>
                             </div>
                         </div>
-                        <div class="flex-fill">
-                            <div class="card text-center border-success h-100">
-                                <div class="card-body py-2">
-                                    <div class="fs-3 fw-bold text-success">@viagens.Count(v => v.StatusConferenciaGestor == "OK" ||
-                                                                                                        v.StatusConferenciaGestor == "Considerado")</div>
-                                        <small class="text-muted">Aprovadas</small>
-                                    </div>
+                    </div>
+                    <div class="flex-fill">
+                        <div class="card shadow-sm h-100" style="border: 1px solid rgba(21, 128, 61, 0.4); background: linear-gradient(135deg, #f0fdf4, #dcfce7); transition: transform 0.2s;">
+                            <div class="card-body py-2 px-3 d-flex align-items-center gap-3">
+                                <div class="d-flex align-items-center justify-content-center rounded-circle shadow-sm" style="width: 48px; height: 48px; background-color: #ffffff;">
+                                    <Icon Name="circle-check" Size="28" style="--icon-primary: #15803d; --icon-secondary: #4ade80; --icon-secondary-opacity: 1;" />
+                                </div>
+                                <div class="text-start">
+                                    <div class="fs-3 fw-bold lh-1" style="color: #16a34a;">@viagens.Count(v => v.StatusConferenciaGestor == "OK" || v.StatusConferenciaGestor == "Considerado")</div>
+                                    <small class="fw-bold text-uppercase" style="color: #15803d; font-size: 0.7rem; letter-spacing: 0.05em;">Aprovadas</small>
                                 </div>
                             </div>
-                            <div class="flex-fill">
-                                <div class="card text-center border-danger h-100">
-                                    <div class="card-body py-2">
-                                        <div class="fs-3 fw-bold text-danger">@viagens.Count(v => v.StatusConferenciaGestor ==
-                                                                                             "Contestada")</div>
-                                            <small class="text-muted">Contestadas</small>
-                                        </div>
-                                    </div>
+                        </div>
+                    </div>
+                    <div class="flex-fill">
+                        <div class="card shadow-sm h-100" style="border: 1px solid rgba(185, 28, 28, 0.4); background: linear-gradient(135deg, #fef2f2, #fee2e2); transition: transform 0.2s;">
+                            <div class="card-body py-2 px-3 d-flex align-items-center gap-3">
+                                <div class="d-flex align-items-center justify-content-center rounded-circle shadow-sm" style="width: 48px; height: 48px; background-color: #ffffff;">
+                                    <Icon Name="circle-xmark" Size="28" style="--icon-primary: #b91c1c; --icon-secondary: #f87171; --icon-secondary-opacity: 1;" />
+                                </div>
+                                <div class="text-start">
+                                    <div class="fs-3 fw-bold lh-1" style="color: #dc2626;">@viagens.Count(v => v.StatusConferenciaGestor == "Contestada")</div>
+                                    <small class="fw-bold text-uppercase" style="color: #b91c1c; font-size: 0.7rem; letter-spacing: 0.05em;">Contestadas</small>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
                         }
                     </div>
                 </div>
@@ -294,9 +306,10 @@ else
 
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
-                        <thead class="table-dark">
-                            <tr>
+                        <thead class="table-purple">
+                            <tr class="align-middle">
                                 <th class="text-center border-end border-dark" style="width: 50px;">#</th>
+                                <th class="text-center">Solicitação da Viagem</th>
                                 <th class="text-center" role="button" @onclick="AlternarOrdemData" style="cursor:pointer;">
                                     Início da Viagem @(ordenarDataAsc ? "▲" : "▼")
                                 </th>
@@ -307,8 +320,8 @@ else
                                 <th class="text-center">Motivo da Viagem</th>
                                 <th class="text-center">Parceiro</th>
                                 <th class="text-center">Valor Final</th>
-                                <th class="text-center">Status</th>
-                                <th class="text-center">Ateste da viagem</th>
+                                <th class="text-center">Status (Parceiro / Ateste)</th>
+                                <th class="text-center">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -321,11 +334,29 @@ else
                                     <td class="text-center text-muted fw-bold border-end border-dark">@(rowIndex++)</td>
                                     <td class="text-center">
                                         @v.DataViagem.ToString("dd/MM/yyyy")<br />
-                                        @v.HoraInicio.ToString("HH:mm")
+                                        @(v.HoraSolicitacao.HasValue ? v.HoraSolicitacao.Value.ToString("HH:mm") : "Sem Registro")
                                     </td>
                                     <td class="text-center">
-                                        @CalcDataFim(v).ToString("dd/MM/yyyy")<br />
-                                        @v.HoraFim.ToString("HH:mm")
+                                        @if (v.StatusOrigem.Contains("Cancelada com Taxa", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="text-muted fst-italic small">Sem Registro</span>
+                                        }
+                                        else
+                                        {
+                                            @v.DataViagem.ToString("dd/MM/yyyy")<br />
+                                            @v.HoraInicio.ToString("HH:mm")
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (v.StatusOrigem.Contains("Cancelada com Taxa", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="text-muted fst-italic small">Sem Registro</span>
+                                        }
+                                        else
+                                        {
+                                            @CalcDataFim(v).ToString("dd/MM/yyyy")<br />
+                                            @v.HoraFim.ToString("HH:mm")
+                                        }
                                     </td>
                                     <td class="text-center">@v.Colaborador.Nome</td>
                                     <td class="text-center">@v.Origem</td>
@@ -334,26 +365,34 @@ else
                                     <td class="text-center">@v.Parceiro.Nome</td>
                                     <td class="text-center">R$ @v.ValorFinal.ToString("N2")</td>
                                     <td class="text-center">
+                                        @if (v.StatusOrigem.Contains("Cancelada", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge bg-danger d-block mb-1 mx-auto" style="max-width: 130px; white-space: normal; line-height: 1.2;">@v.StatusOrigem</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary d-block mb-1 mx-auto" style="max-width: 130px; white-space: normal; line-height: 1.2;">@v.StatusOrigem</span>
+                                        }
                                         @switch (v.StatusConferenciaGestor)
                                         {
                                             case "Pendente":
-                                                <span class="badge bg-warning text-dark">
+                                                <span class="badge bg-warning text-dark status-badge-fixed">
                                                     <Icon Name="clock" Size="12" /> Pendente
                                                 </span>
                                                 break;
                                             case "OK":
-                                                <span class="badge bg-success">
+                                                <span class="badge bg-success status-badge-fixed">
                                                     <Icon Name="circle-check" Size="12" /> Atestada
                                                 </span>
                                                 break;
                                             case "Considerado":
-                                                <span class="badge text-white" style="background-color: #6f42c1;">
+                                                <span class="badge text-white status-badge-fixed" style="background-color: #6f42c1;">
                                                     <Icon Name="circle-check" Size="12" /> Considerada
                                                 </span>
                                                 break;
                                             case "Contestada":
                                                 <button type="button"
-                                                        class="badge bg-danger border-0 d-inline-flex align-items-center gap-1 btn-badge-contestada"
+                                                        class="badge bg-danger border-0 d-inline-flex align-items-center justify-content-center gap-1 btn-badge-contestada status-badge-fixed"
                                                         style="cursor: pointer; user-select: none;" @onclick="() => MostrarMotivoContestacao(v)"
                                                         title="Clique para ver o motivo da contestação">
                                                     <Icon Name="circle-xmark" Size="12" /> Contestada
@@ -370,12 +409,22 @@ else
                                         {
                                             @if (v.StatusConferenciaGestor == "Pendente")
                                             {
-                                                <button class="btn btn-sm btn-success me-1" @onclick="() => Aprovar(v)">
-                                                    <Icon Name="circle-check" Size="14" /> Atestar
-                                                </button>
-                                                <button class="btn btn-sm btn-danger" @onclick="() => AbrirContestacao(v)">
-                                                    <Icon Name="circle-xmark" Size="14" /> Contestar
-                                                </button>
+                                                bool isPropriaViagem = !isAdmin && v.Colaborador.Cpf == UserSession.UsuarioLogado!.Cpf;
+                                                @if (isPropriaViagem)
+                                                {
+                                                    <span class="badge bg-secondary">Sua Viagem</span>
+                                                }
+                                                else
+                                                {
+                                                    <div class="d-flex flex-column gap-1 align-items-center">
+                                                        <button class="btn btn-sm btn-success" style="width: 92px; padding-left: 4px; padding-right: 4px;" @onclick="() => Aprovar(v)" disabled="@confirmando">
+                                                            <Icon Name="circle-check" Size="14" /> Atestar
+                                                        </button>
+                                                        <button class="btn btn-sm btn-danger" style="width: 92px; padding-left: 4px; padding-right: 4px;" @onclick="() => AbrirContestacao(v)" disabled="@confirmando">
+                                                            <Icon Name="circle-xmark" Size="14" /> Contestar
+                                                        </button>
+                                                    </div>
+                                                }
                                             }
                                             else
                                             {
@@ -492,9 +541,9 @@ else
                 <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
-                            <div class="modal-header">
+                            <div class="modal-header bg-danger text-white">
                                 <h5 class="modal-title">Contestar Viagem</h5>
-                                <button type="button" class="btn-close" @onclick="FecharContestacao"></button>
+                                <button type="button" class="btn-close btn-close-white" @onclick="FecharContestacao"></button>
                             </div>
                             <div class="modal-body">
                                 <p>
@@ -807,13 +856,24 @@ else
 
         var conferencia = await Db.ConferenciasMensais
             .Include(c => c.Usuario)
-            .FirstOrDefaultAsync(c => c.CentroCustoId == centroCustoId.Value && c.Ano == anoSelecionado && c.Mes == mesSelecionado);
+            .Where(c => c.CentroCustoId == centroCustoId.Value && c.Ano == anoSelecionado && c.Mes == mesSelecionado)
+            .OrderByDescending(c => c.DataConfirmacao)
+            .FirstOrDefaultAsync();
 
         jaConfirmou = conferencia is not null;
         confirmadoPorNome = conferencia?.Usuario.Nome;
         confirmadoEm = conferencia?.DataConfirmacao;
 
-        todasVerificadas = viagens.Count > 0 && viagens.All(v => v.StatusConferenciaGestor != "Pendente");
+        // Se for admin, todas precisam estar verificadas. Se for gestor, só as que não são dele próprio.
+        if (isAdmin)
+        {
+            todasVerificadas = viagens.Count > 0 && viagens.All(v => v.StatusConferenciaGestor != "Pendente");
+        }
+        else
+        {
+            var viagensPermitidas = viagens.Where(v => v.Colaborador.Cpf != UserSession.UsuarioLogado!.Cpf).ToList();
+            todasVerificadas = viagensPermitidas.Count > 0 && viagensPermitidas.All(v => v.StatusConferenciaGestor != "Pendente");
+        }
     }
 
     private void Filtrar()
@@ -883,6 +943,7 @@ else
         v.StatusConferenciaGestor = "OK";
         v.DataConferencia = DateTime.Now;
         v.MotivoContestacao = null;
+        if (!isAdmin) v.ConferidoPorUsuarioId = UserSession.UsuarioLogado?.Id;
         await Db.SaveChangesAsync();
         await InvalidarConfirmacao();
         Filtrar();
@@ -918,6 +979,7 @@ else
         viagemContestar.StatusConferenciaGestor = "Contestada";
         viagemContestar.DataConferencia = DateTime.Now;
         viagemContestar.MotivoContestacao = motivoContestacao;
+        if (!isAdmin) viagemContestar.ConferidoPorUsuarioId = UserSession.UsuarioLogado?.Id;
         await Db.SaveChangesAsync();
 
         FecharContestacao();
@@ -931,6 +993,7 @@ else
         v.StatusConferenciaGestor = "Pendente";
         v.DataConferencia = null;
         v.MotivoContestacao = null;
+        v.ConferidoPorUsuarioId = null;
         await Db.SaveChangesAsync();
         await InvalidarConfirmacao();
         Filtrar();
@@ -965,17 +1028,8 @@ else
     /// Remove a confirmação existente deste centro de custo/mês para forçar reconfirmação
     private async Task InvalidarConfirmacao()
     {
-        var centroCustoId = isAdmin ? centroCustoSelecionadoId : UserSession.UsuarioLogado!.CentroCustoId;
-        if (!centroCustoId.HasValue) return;
-
-        var conf = await Db.ConferenciasMensais
-            .FirstOrDefaultAsync(c => c.CentroCustoId == centroCustoId.Value && c.Ano == anoSelecionado && c.Mes == mesSelecionado);
-
-        if (conf is not null)
-        {
-            Db.ConferenciasMensais.Remove(conf);
-            await Db.SaveChangesAsync();
-        }
+        // Mantemos o histórico de conferências, então não apagamos a ConferenciaMensal anterior.
+        await Task.CompletedTask;
     }
 
     private async Task ConfirmarMes()
@@ -992,13 +1046,25 @@ else
         confirmando = true;
         try
         {
+            var loggedUserId = UserSession.UsuarioLogado!.Id;
+            var loggedUserCpf = UserSession.UsuarioLogado!.Cpf;
+            
+            var qtdOk = viagens!.Count(v => v.ConferidoPorUsuarioId == loggedUserId && v.StatusConferenciaGestor == "OK");
+            var qtdContestadas = viagens!.Count(v => v.ConferidoPorUsuarioId == loggedUserId && v.StatusConferenciaGestor == "Contestada");
+            // Viagens do outro gestor atestadas por mim
+            var qtdOutroGestor = viagens!.Count(v => v.ConferidoPorUsuarioId == loggedUserId && 
+                                                    (v.Colaborador.Cpf != loggedUserCpf && (v.StatusConferenciaGestor == "OK" || v.StatusConferenciaGestor == "Contestada")));
+
             var conferencia = new ConferenciaMensal
             {
                 CentroCustoId = centroCustoId.Value,
                 Ano = anoSelecionado,
                 Mes = mesSelecionado,
-                UsuarioId = UserSession.UsuarioLogado!.Id,
-                DataConfirmacao = DateTime.Now
+                UsuarioId = loggedUserId,
+                DataConfirmacao = DateTime.Now,
+                QtdViagensOk = qtdOk,
+                QtdViagensContestadas = qtdContestadas,
+                QtdViagensOutroGestor = qtdOutroGestor
             };
             Db.ConferenciasMensais.Add(conferencia);
             await Db.SaveChangesAsync();

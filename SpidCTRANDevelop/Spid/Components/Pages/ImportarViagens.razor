@@ -20,7 +20,7 @@
 }
 else
 {
-    <div class="card shadow-sm">
+    <div class="card shadow-sm mb-4" style="border: 2px solid rgba(111, 66, 193, 0.4);">
         <div class="card-body">
             <p class="text-muted">
                 Selecione um arquivo Excel (.xlsx) com a tabela de viagens para importar.
@@ -75,6 +75,13 @@ else
             {
                 <div class="alert alert-info">
                     <Icon Name="forward" Size="16" Class="text-info me-1" /> <strong>@resultado.Ignoradas</strong> viagem(ns) ignorada(s) (já existiam no banco).
+                </div>
+            }
+
+            @if (resultado.Atualizadas > 0)
+            {
+                <div class="alert alert-primary">
+                    <Icon Name="clock" Size="16" Class="text-primary me-1" /> <strong>@resultado.Atualizadas</strong> viagem(ns) antiga(s) atualizada(s) com novo horário de solicitação.
                 </div>
             }
 

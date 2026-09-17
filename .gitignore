@@ -7,6 +7,8 @@
 **/bin/
 **/obj/
 
+**/Conversas IA/
+
 # React / Node
 frontend/node_modules/
 frontend/dist/

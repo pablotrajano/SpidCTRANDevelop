@@ -409,7 +409,7 @@ else
                                         {
                                             @if (v.StatusConferenciaGestor == "Pendente")
                                             {
-                                                bool isPropriaViagem = !isAdmin && v.Colaborador.Cpf == UserSession.UsuarioLogado!.Cpf;
+                                                bool isPropriaViagem = !isAdmin && NormalizarCpf(v.Colaborador.Cpf) == NormalizarCpf(UserSession.UsuarioLogado!.Cpf);
                                                 @if (isPropriaViagem)
                                                 {
                                                     <span class="badge bg-secondary">Sua Viagem</span>
@@ -486,29 +486,24 @@ else
                                     Analise as novas viagens pendentes na tabela acima para poder reconfirmar o mês.
                                 </div>
                             }
-                            else if (jaConfirmou && confirmadoPorNome is not null)
-                            {
-                                <div class="alert alert-success mb-0">
-                                    <Icon Name="circle-check" Size="16" Class="text-success me-1" /> Verificação de
-                                    <strong>@($"{mesSelecionado:D2}/{anoSelecionado}")</strong> confirmada por
-                                    <strong>@confirmadoPorNome</strong> em @confirmadoEm?.ToString("dd/MM/yyyy HH:mm")
-                                </div>
-                            }
-                            else if (jaConfirmou)
-                            {
-                                <div class="alert alert-success mb-0">
-                                    <Icon Name="circle-check" Size="16" Class="text-success me-1" /> Verificação do mês
-                                    <strong>@($"{mesSelecionado:D2}/{anoSelecionado}")</strong> já foi confirmada.
-                                </div>
-                            }
                             else
                             {
-                                <div
-                                    class="alert @(todasVerificadas ? "alert-info" : "alert-warning") mb-0 d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                <div class="alert @(todasVerificadas ? (jaConfirmou ? "alert-success" : "alert-info") : "alert-warning") mb-0 d-flex justify-content-between align-items-center flex-wrap gap-3">
                                     <div>
                                         @if (todasVerificadas)
                                         {
-                                            <span>Todas as viagens foram analisadas! Confirme a verificação do mês.</span>
+                                            @if (jaConfirmou && confirmadoPorNome is not null)
+                                            {
+                                                <span>
+                                                    <Icon Name="circle-check" Size="16" Class="text-success me-1" />
+                                                    Verificação confirmada por <strong>@confirmadoPorNome</strong> em @confirmadoEm?.ToString("dd/MM/yyyy HH:mm").
+                                                    Todas as <strong>@viagens.Count</strong> viagens estão analisadas.
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span>Todas as <strong>@viagens.Count</strong> viagens foram analisadas! Confirme a verificação do mês.</span>
+                                            }
                                         }
                                         else
                                         {
@@ -519,15 +514,18 @@ else
                                             </span>
                                         }
                                     </div>
-                                    <button class="btn btn-success @(!todasVerificadas ? "opacity-50" : "")" @onclick="ConfirmarMes"
-                                            disabled="@(confirmando || isSomenteLeitura)">
-                                        @if (confirmando)
-                                        {
-                                            <span class="spinner-border spinner-border-sm me-2"></span>
-                                        }
-                                        <Icon Name="circle-check" Size="14" /> Confirmar Verificação de
-                                        @($"{mesSelecionado:D2}/{anoSelecionado}")
-                                    </button>
+                                    @if (todasVerificadas)
+                                    {
+                                        <button class="btn btn-success" @onclick="ConfirmarMes"
+                                                disabled="@(confirmando || isSomenteLeitura)">
+                                            @if (confirmando)
+                                            {
+                                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                            }
+                                            <Icon Name="circle-check" Size="14" />
+                                            @(jaConfirmou ? "Reconfirmar Verificação de " : "Confirmar Verificação de ")@($"{mesSelecionado:D2}/{anoSelecionado}")
+                                        </button>
+                                    }
                                 </div>
                             }
                         </div>
@@ -871,7 +869,8 @@ else
         }
         else
         {
-            var viagensPermitidas = viagens.Where(v => v.Colaborador.Cpf != UserSession.UsuarioLogado!.Cpf).ToList();
+            var loggedCpfNorm = NormalizarCpf(UserSession.UsuarioLogado!.Cpf);
+            var viagensPermitidas = viagens.Where(v => NormalizarCpf(v.Colaborador.Cpf) != loggedCpfNorm).ToList();
             todasVerificadas = viagensPermitidas.Count > 0 && viagensPermitidas.All(v => v.StatusConferenciaGestor != "Pendente");
         }
     }
@@ -940,10 +939,12 @@ else
 
     private async Task Aprovar(Viagem v)
     {
+        if (isSomenteLeitura) return;
+
         v.StatusConferenciaGestor = "OK";
         v.DataConferencia = DateTime.Now;
         v.MotivoContestacao = null;
-        if (!isAdmin) v.ConferidoPorUsuarioId = UserSession.UsuarioLogado?.Id;
+        v.ConferidoPorUsuarioId = UserSession.UsuarioLogado?.Id;
         await Db.SaveChangesAsync();
         await InvalidarConfirmacao();
         Filtrar();
@@ -952,6 +953,7 @@ else
 
     private void AbrirContestacao(Viagem v)
     {
+        if (isSomenteLeitura) return;
         viagemContestar = v;
         motivoContestacao = "";
     }
@@ -974,12 +976,12 @@ else
 
     private async Task ConfirmarContestacao()
     {
-        if (viagemContestar is null || string.IsNullOrWhiteSpace(motivoContestacao)) return;
+        if (isSomenteLeitura || viagemContestar is null || string.IsNullOrWhiteSpace(motivoContestacao)) return;
 
         viagemContestar.StatusConferenciaGestor = "Contestada";
         viagemContestar.DataConferencia = DateTime.Now;
         viagemContestar.MotivoContestacao = motivoContestacao;
-        if (!isAdmin) viagemContestar.ConferidoPorUsuarioId = UserSession.UsuarioLogado?.Id;
+        viagemContestar.ConferidoPorUsuarioId = UserSession.UsuarioLogado?.Id;
         await Db.SaveChangesAsync();
 
         FecharContestacao();
@@ -990,6 +992,8 @@ else
 
     private async Task Reverter(Viagem v)
     {
+        if (isSomenteLeitura) return;
+
         v.StatusConferenciaGestor = "Pendente";
         v.DataConferencia = null;
         v.MotivoContestacao = null;
@@ -1002,6 +1006,8 @@ else
 
     private async Task SolicitarReversao(Viagem v)
     {
+        if (isSomenteLeitura) return;
+
         if (v.StatusConferenciaGestor == "Contestada")
         {
             viagemReverterConfirmar = v;
@@ -1014,7 +1020,7 @@ else
 
     private async Task ConfirmarReversaoContestada()
     {
-        if (viagemReverterConfirmar is null) return;
+        if (isSomenteLeitura || viagemReverterConfirmar is null) return;
         var v = viagemReverterConfirmar;
         viagemReverterConfirmar = null;
         await Reverter(v);
@@ -1034,6 +1040,8 @@ else
 
     private async Task ConfirmarMes()
     {
+        if (isSomenteLeitura) return;
+
         if (!todasVerificadas)
         {
             exibirModalAvisoPendencias = true;
@@ -1048,12 +1056,45 @@ else
         {
             var loggedUserId = UserSession.UsuarioLogado!.Id;
             var loggedUserCpf = UserSession.UsuarioLogado!.Cpf;
+            var loggedUserPerfil = UserSession.UsuarioLogado!.Perfil;
             
-            var qtdOk = viagens!.Count(v => v.ConferidoPorUsuarioId == loggedUserId && v.StatusConferenciaGestor == "OK");
+            var qtdOk = viagens!.Count(v => v.ConferidoPorUsuarioId == loggedUserId && (v.StatusConferenciaGestor == "OK" || v.StatusConferenciaGestor == "Considerado"));
             var qtdContestadas = viagens!.Count(v => v.ConferidoPorUsuarioId == loggedUserId && v.StatusConferenciaGestor == "Contestada");
-            // Viagens do outro gestor atestadas por mim
-            var qtdOutroGestor = viagens!.Count(v => v.ConferidoPorUsuarioId == loggedUserId && 
-                                                    (v.Colaborador.Cpf != loggedUserCpf && (v.StatusConferenciaGestor == "OK" || v.StatusConferenciaGestor == "Contestada")));
+
+            // Identificar gestores (Titular e Substituto) deste Centro de Custo específico
+            var gestoresDoCentro = await Db.Usuarios
+                .Where(u => u.CentroCustoId == centroCustoId.Value && u.Ativo && !u.IsTeste &&
+                            (u.Perfil == "Gestor Titular" || u.Perfil == "Gestor Substituto"))
+                .Select(u => new { u.Id, u.Cpf })
+                .ToListAsync();
+
+            var loggedUserCpfNorm = NormalizarCpf(loggedUserCpf);
+
+            List<string> cpfsOutroGestor;
+            if (loggedUserPerfil == "Admin")
+            {
+                // Se quem está atestando for Admin, viagens de qualquer gestor (Titular ou Substituto) deste centro contam como viagem de gestor
+                cpfsOutroGestor = gestoresDoCentro
+                    .Where(g => !string.IsNullOrEmpty(g.Cpf))
+                    .Select(g => NormalizarCpf(g.Cpf))
+                    .Where(c => !string.IsNullOrEmpty(c))
+                    .ToList();
+            }
+            else
+            {
+                // Para Gestor Titular ou Gestor Substituto deste centro:
+                // Considera apenas viagens do OUTRO gestor do centro (excluindo seu próprio CPF)
+                cpfsOutroGestor = gestoresDoCentro
+                    .Where(g => g.Id != loggedUserId && !string.IsNullOrEmpty(g.Cpf) && NormalizarCpf(g.Cpf) != loggedUserCpfNorm)
+                    .Select(g => NormalizarCpf(g.Cpf))
+                    .Where(c => !string.IsNullOrEmpty(c))
+                    .ToList();
+            }
+
+            var qtdOutroGestor = cpfsOutroGestor.Count == 0 ? 0 :
+                viagens!.Count(v => v.ConferidoPorUsuarioId == loggedUserId &&
+                                    cpfsOutroGestor.Contains(NormalizarCpf(v.Colaborador.Cpf)) &&
+                                    (v.StatusConferenciaGestor == "OK" || v.StatusConferenciaGestor == "Contestada" || v.StatusConferenciaGestor == "Considerado"));
 
             var conferencia = new ConferenciaMensal
             {
@@ -1075,4 +1116,6 @@ else
             confirmando = false;
         }
     }
+
+    private static string NormalizarCpf(string? cpf) => string.IsNullOrEmpty(cpf) ? "" : new string(cpf.Where(char.IsDigit).ToArray());
 }

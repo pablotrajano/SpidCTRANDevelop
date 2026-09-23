@@ -8,6 +8,7 @@
 **/obj/
 
 **/Conversas IA/
+**/dontget/
 
 # React / Node
 frontend/node_modules/
@@ -46,5 +47,3 @@ dist-ssr
 *.db-wal
 
 Published/
-
-dontget.md
